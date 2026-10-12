@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import './App.css';
-
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://chuongmusic-sever.onrender.com/api';
 const SPEED_RATES = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
 const HOT_TIKTOK_KEYWORDS = [
