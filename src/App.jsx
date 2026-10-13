@@ -145,7 +145,6 @@ function App() {
   const [showVideo, setShowVideo] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
-  // LƯU TRỮ VÀ TẢI MEDIA TỪ INDEXEDDB CHỐNG TRÀN BỘ NHỚ
   const [customMediaList, setCustomMediaList] = useState([]);
 
   const [activeBackground, setActiveBackground] = useState(() => {
@@ -160,7 +159,6 @@ function App() {
 
   const currentSong = currentIndex >= 0 ? songs[currentIndex] : null;
 
-  // DỌN DẸP BỘ NHỚ LOCALSTORAGE CŨ BỊ ĐẦY TRÀN
   useEffect(() => {
     localStorage.removeItem('liquid_custom_media');
     
@@ -277,7 +275,6 @@ function App() {
     handleRefreshRecommendations();
   }, []);
 
-  // XỬ LÝ UPLOAD FILE SIÊU TỐC KHÔNG LO DUNG LƯỢNG LỚN
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
@@ -605,17 +602,42 @@ function App() {
     playSong(Math.floor(Math.random() * songList.length), songList);
   };
 
+  // HÀM TẠM DỪNG / PHÁT BÀI HÁT ĐÃ ĐƯỢC FIX HOÀN HẢO
   const togglePlayPause = () => {
     audioDSP.resumeAudioContext();
-    if (nativeAudioRef.current && nativeAudioRef.current.src) {
-      if (isPlaying) nativeAudioRef.current.pause();
-      else nativeAudioRef.current.play();
-      setIsPlaying(!isPlaying);
-      return;
+
+    if (isPlaying) {
+      // Đang phát -> Tạm dừng cả HTML5 Audio lẫn YouTube Player
+      if (nativeAudioRef.current && !nativeAudioRef.current.paused) {
+        nativeAudioRef.current.pause();
+      }
+      if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
+        try {
+          playerRef.current.pauseVideo();
+        } catch (e) {}
+      }
+      setIsPlaying(false);
+    } else {
+      // Đang dừng -> Tiếp tục phát trình phát đang chạy
+      let hasNativePlay = false;
+
+      if (nativeAudioRef.current && nativeAudioRef.current.src) {
+        nativeAudioRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch(() => {
+          if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
+            playerRef.current.playVideo();
+            setIsPlaying(true);
+          }
+        });
+        hasNativePlay = true;
+      }
+
+      if (!hasNativePlay && playerRef.current && typeof playerRef.current.playVideo === 'function') {
+        playerRef.current.playVideo();
+        setIsPlaying(true);
+      }
     }
-    if (!playerRef.current) return;
-    if (isPlaying) playerRef.current.pauseVideo();
-    else playerRef.current.playVideo();
   };
 
   const handleNext = () => {
@@ -660,6 +682,8 @@ function App() {
         ref={nativeAudioRef}
         crossOrigin="anonymous"
         onEnded={handleAutoNext}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
         style={{ display: 'none' }}
       />
 
