@@ -1,0 +1,79 @@
+@media (max-width: 768px) {
+  .app-container {
+    padding: 10px 12px;
+    padding-bottom: 220px;
+  }
+
+  .glass-card {
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+
+  .blob {
+    opacity: 0.25 !important;
+  }
+
+  .songs-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .song-card {
+    min-height: 68px;
+    padding: 8px;
+  }
+
+  .player-dock {
+    flex-direction: column !important;
+    bottom: 8px !important;
+    left: 8px !important;
+    right: 8px !important;
+    padding: 8px 10px !important;
+    gap: 6px !important;
+    border-radius: 18px !important;
+  }
+
+  .player-left, .player-center, .player-right {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .player-right {
+    border-top: 1px solid var(--glass-border);
+    padding-top: 6px;
+    gap: 4px;
+  }
+
+  .visualizer-canvas {
+    max-width: 140px;
+  }
+
+  .recommend-popup-card {
+    bottom: 200px !important;
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+  }
+
+  .video-glass-box {
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand h1 {
+    display: none;
+  }
+
+  .header-controls {
+    gap: 4px;
+  }
+
+  .refresh-recommend-btn,
+  .reset-user-data-btn,
+  .led-toggle-btn {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+}
