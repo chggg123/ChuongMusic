@@ -1646,3 +1646,454 @@ button {
     max-width: 100px !important;
   }
 }
+/* POPUP CHỌN SPEED DẠNG THANH KÉO SLIDER (0.25x - 2.0x) */
+.speed-dropdown-options {
+  position: absolute !important;
+  bottom: calc(100% + 12px) !important;
+  right: 0 !important;
+  width: 180px !important;
+  padding: 10px 12px !important;
+  border-radius: 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  z-index: 2500 !important;
+  background: var(--dock-bg, rgba(12, 18, 32, 0.95)) !important;
+  backdrop-filter: blur(28px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+.speed-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-size: 11px !important;
+  color: var(--dock-text, #ffffff) !important;
+}
+
+.speed-title strong {
+  color: #00f2fe !important;
+}
+
+.speed-reset-btn {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--dock-text, #ffffff) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 2px 6px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+}
+
+.speed-reset-btn:hover {
+  background: #00f2fe !important;
+  color: #000000 !important;
+}
+
+.speed-slider {
+  width: 100% !important;
+  height: 6px !important;
+  accent-color: #00f2fe !important;
+  cursor: pointer !important;
+  border-radius: 4px !important;
+}
+
+.speed-quick-presets {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 4px !important;
+}
+
+.speed-preset-btn {
+  flex: 1 !important;
+  padding: 4px 0 !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--glass-border) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--dock-text, #ffffff) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  text-align: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.speed-preset-btn:hover,
+.speed-preset-btn.active {
+  background: linear-gradient(135deg, #00f2fe, #ff007f) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+/* 1. Tăng độ dày và tổng thể khung Player Dock */
+.player-dock {
+  padding: 28px 28px !important;
+  bottom: 10px !important;
+}
+
+/* 2. Tăng kích thước ảnh bìa bài hát */
+.album-art-wrapper img {
+  width: 56px !important;
+  height: 56px !important;
+}
+
+/* 3. Tăng cỡ chữ tên bài hát và ca sĩ */
+.song-meta h4 {
+  font-size: 15px !important;
+  max-width: 220px !important;
+}
+.song-meta p {
+  font-size: 13px !important;
+}
+
+/* 4. Tăng kích thước cụm nút Phát / Tạm dừng / Chuyển bài */
+.controls-group {
+  gap: 20px !important;
+}
+.ctrl-btn {
+  font-size: 20px !important;
+}
+.play-btn {
+  font-size: 30px !important;
+}
+
+/* 5. Tăng độ dày thanh kéo thời gian & chữ thời gian */
+.progress-bar {
+  height: 6px !important;
+}
+.time-text {
+  font-size: 12px !important;
+  width: 40px !important;
+}
+
+/* 6. Tăng kích thước các nút tính năng bên phải (Nền, Auto, Speed...) */
+.video-toggle-btn,
+.bgplay-toggle-btn,
+.autoplay-toggle-btn,
+.speed-toggle-btn {
+  padding: 7px 12px !important;
+  font-size: 11px !important;
+  border-radius: 16px !important;
+}
+
+.volume-bar {
+  width: 80px !important;
+  height: 6px !important;
+}
+/* POPUP CHỌN TỐC ĐỘ DẠNG NÚT BẤM (CỐ ĐỊNH) */
+.speed-dropdown-options {
+  position: absolute !important;
+  bottom: calc(100% + 12px) !important;
+  right: 0 !important;
+  width: 220px !important;
+  padding: 10px 12px !important;
+  border-radius: 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  z-index: 2500 !important;
+  background: var(--dock-bg, rgba(12, 18, 32, 0.95)) !important;
+  backdrop-filter: blur(28px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+.speed-title {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: var(--dock-sub, #a0aec0) !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.speed-quick-presets {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 6px !important;
+}
+
+.speed-preset-btn {
+  padding: 6px 4px !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--glass-border) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--dock-text, #ffffff) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  text-align: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.speed-preset-btn:hover,
+.speed-preset-btn.active {
+  background: linear-gradient(135deg, #00f2fe, #ff007f) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 2px 8px rgba(0, 242, 254, 0.4) !important;
+}
+/* THU NHỎ KHUNG POPUP CHỌN TỐC ĐỘ (SPEED) */
+.speed-dropdown-options {
+  position: absolute !important;
+  bottom: calc(100% + 10px) !important;
+  right: 0 !important;
+  width: 160px !important;             /* Thu hẹp chiều rộng khung */
+  padding: 8px !important;             /* Bớt khoảng đệm viền */
+  border-radius: 12px !important;      /* Bo góc nhỏ gọn */
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  z-index: 2500 !important;
+  background: rgba(12, 18, 32, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Thu nhỏ chữ tiêu đề */
+.speed-title {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  color: var(--dock-sub, #a0aec0) !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  margin: 0 !important;
+  padding-bottom: 2px !important;
+}
+
+/* Chia lưới 3 cột cho các nút */
+.speed-quick-presets {
+  display: grid !important;
+  grid-template-columns: repeat(8, 1fr) !important;
+  gap: 4px !important;
+}
+
+/* Thu nhỏ nút bấm và cỡ chữ số (0.25x, 0.5x, 1.0x...) */
+.speed-preset-btn {
+  padding: 4px 2px !important;         /* Nút nhỏ gọn */
+  border-radius: 6px !important;
+  border: 1px solid var(--glass-border) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  font-size: 10px !important;           /* Chữ số thu nhỏ vừa vặn */
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  text-align: center !important;
+  transition: all 0.15s ease !important;
+}
+
+.speed-preset-btn:hover,
+.speed-preset-btn.active {
+  background: linear-gradient(135deg, #00f2fe, #ff007f) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+/* POPUP CHỌN TỐC ĐỘ HÀNG NGANG CHUẨN HIỆU ỨNG LIQUID GLASS */
+.speed-dropdown-options.speed-liquid-glass {
+  position: absolute !important;
+  bottom: calc(100% + 12px) !important;
+  right: 0 !important;
+  width: max-content !important;
+  padding: 8px 12px !important;
+  border-radius: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 2500 !important;
+
+  /* Hiệu ứng kính mờ Liquid Glass */
+  background: rgba(12, 18, 32, 0.65) !important;
+  backdrop-filter: blur(24px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 0 15px rgba(0, 242, 254, 0.15) !important;
+}
+
+.light .speed-dropdown-options.speed-liquid-glass {
+  background: rgba(255, 255, 255, 0.65) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Xắp xếp các nút nằm trên 1 hàng ngang */
+.speed-quick-presets.horizontal {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 6px !important;
+  white-space: nowrap !important;
+}
+
+/* Kiểu dáng nút bo tròn chuẩn Liquid Glass */
+.speed-quick-presets.horizontal .speed-preset-btn {
+  padding: 6px 12px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: var(--text-main, #ffffff) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  white-space: nowrap !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* Hiệu ứng khi rê chuột vào nút */
+.speed-quick-presets.horizontal .speed-preset-btn:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: #00f2fe !important;
+  color: #00f2fe !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 242, 254, 0.3) !important;
+}
+
+/* Nút tốc độ đang được chọn active */
+.speed-quick-presets.horizontal .speed-preset-btn.active {
+  background: linear-gradient(135deg, #00f2fe 0%, #ff007f 100%) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 14px rgba(255, 0, 127, 0.4) !important;
+  font-weight: 800 !important;
+}
+/* =========================================================
+   BỘ RESPONSIVE FIX LỖI CHE FOOTER TRÊN MOBILE
+   ========================================================= */
+
+/* 1. MÀN HÌNH LAPTOP NHỎ & TABLET (Dưới 1024px) */
+@media screen and (max-width: 1024px) {
+  .app-container {
+    padding: 18px 16px !important;
+    padding-bottom: 200px !important;
+  }
+
+  .player-dock {
+    left: 16px !important;
+    right: 16px !important;
+  }
+}
+
+/* 2. MÀN HÌNH DI ĐỘNG & TABLET NHỎ (Dưới 768px) */
+@media screen and (max-width: 768px) {
+  .app-container {
+    padding: 12px 12px !important;
+    padding-bottom: 250px !important; /* Tăng padding-bottom để cuộn hiển thị trọn vẹn Footer */
+  }
+
+  .site-footer.always-rgb-footer {
+    margin-bottom: 20px !important;
+  }
+
+  /* Thu nhỏ Player Dock gọn gàng trên mobile */
+  .player-dock {
+    position: fixed !important;
+    bottom: 8px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    padding: 10px 12px !important;
+    border-radius: 18px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45) !important;
+    box-sizing: border-box !important;
+  }
+
+  .album-art-wrapper img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .song-meta h4 {
+    font-size: 13px !important;
+    max-width: 140px !important;
+  }
+
+  .song-meta p {
+    font-size: 11px !important;
+    max-width: 140px !important;
+  }
+
+  .controls-group {
+    gap: 12px !important;
+  }
+
+  .play-btn {
+    font-size: 24px !important;
+  }
+
+  .ctrl-btn {
+    font-size: 16px !important;
+  }
+
+  .progress-bar {
+    height: 4px !important;
+  }
+
+  .video-toggle-btn,
+  .bgplay-toggle-btn,
+  .autoplay-toggle-btn,
+  .speed-toggle-btn {
+    padding: 4px 10px !important;
+    font-size: 10px !important;
+    border-radius: 12px !important;
+  }
+
+  .recommend-popup-card {
+    bottom: 230px !important; /* Đẩy popup gợi ý lên trên Player Dock */
+  }
+}
+
+/* 3. MÀN HÌNH ĐIỆN THOẠI NHỎ (Dưới 480px) */
+@media screen and (max-width: 480px) {
+  .app-container {
+    padding: 8px !important;
+    padding-bottom: 260px !important; /* Đảm bảo đủ khoảng trống cuộn qua dock */
+  }
+
+  .player-dock {
+    left: 8px !important;
+    right: 8px !important;
+    padding: 8px 10px !important;
+  }
+
+  .song-meta h4 {
+    max-width: 110px !important;
+  }
+
+  .song-meta p {
+    max-width: 110px !important;
+  }
+}
+
+/* 4. CHỈ TĂNG KÍCH THƯỚC PLAYER DOCK TRÊN MÀN HÌNH MÁY TÍNH (DESKTOP) */
+@media screen and (min-width: 769px) {
+  .player-dock {
+    padding: 16px 24px !important;
+    bottom: 12px !important;
+  }
+
+  .album-art-wrapper img {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .song-meta h4 {
+    font-size: 14px !important;
+    max-width: 200px !important;
+  }
+
+  .controls-group {
+    gap: 18px !important;
+  }
+
+  .play-btn {
+    font-size: 26px !important;
+  }
+}
