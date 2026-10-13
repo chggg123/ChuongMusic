@@ -25,9 +25,10 @@
 }
 
 html, body, #root {
-  width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: hidden !important;
   background-color: var(--bg-main) !important;
   transition: background-color 0.3s ease;
 }
@@ -63,13 +64,15 @@ html, body, #root {
 }
 
 .app-container {
-  width: 100vw;
+  width: 100% !important;
+  max-width: 100% !important;
   min-height: 100vh;
   padding: 24px 36px;
   padding-bottom: 170px;
   position: relative;
   background-color: var(--bg-main);
   color: var(--text-main);
+  overflow-x: hidden !important;
   transition: color 0.3s ease, background-color 0.3s ease;
 }
 
@@ -180,6 +183,16 @@ html, body, #root {
   z-index: 1 !important;
   padding: 2px !important;
   border-radius: 20px !important;
+}
+
+/* FIX CHO PLAYER DOCK HIỂN THỊ POPUP KHÔNG BỊ CẮT */
+.player-dock.rgb-chase-box,
+.player-dock {
+  overflow: visible !important;
+}
+
+.player-dock.rgb-chase-box::after {
+  clip-path: inset(0 round 24px) !important;
 }
 
 .rgb-chase-box::before,
@@ -441,7 +454,6 @@ html, body, #root {
   text-overflow: ellipsis;
 }
 
-/* Bài đang phát sẽ có chữ trắng nổi bật trên viền LED */
 .song-card.active .song-info h3,
 .song-card.active .song-info p {
   color: #ffffff !important;
@@ -466,7 +478,7 @@ button {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100% !important;
   height: 100vh;
   z-index: 0;
   pointer-events: none;
@@ -556,7 +568,6 @@ button {
   width: 100%;
 }
 
-/* NÚT TÌM KIẾM - CỐ ĐỊNH CHỮ TRẮNG NỔI BẬT KHÔNG BỊ ĐỔI MÀU */
 .search-submit-btn {
   padding: 8px 22px !important;
   border-radius: 24px !important;
@@ -651,8 +662,8 @@ button {
 .player-dock {
   position: fixed !important;
   bottom: 12px !important;
-  left: 20px !important;
-  right: 20px !important;
+  left: 36px !important;
+  right: 36px !important;
   padding: 10px 20px;
   display: flex;
   align-items: center;
@@ -714,24 +725,55 @@ button {
 .speed-menu-container { position: relative; }
 .speed-toggle-btn { padding: 5px 10px; border-radius: 14px; border: 1px solid #00f2fe; background: rgba(0, 242, 254, 0.3); color: #ffffff; font-weight: bold; font-size: 10px; cursor: pointer; }
 
+/* FIX MENU SPEED DROPDOWN HIỂN THỊ ĐẮT GIÁ */
 .speed-dropdown-options {
-  position: absolute;
-  bottom: calc(100% + 10px);
-  right: 0;
-  width: 120px;
-  padding: 6px;
-  border-radius: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  z-index: 1200;
-  background: var(--dock-bg);
-  backdrop-filter: blur(24px);
+  position: absolute !important;
+  bottom: calc(100% + 12px) !important;
+  right: 0 !important;
+  width: 130px !important;
+  padding: 8px !important;
+  border-radius: 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  z-index: 2500 !important;
+  background: var(--dock-bg, rgba(12, 18, 32, 0.95)) !important;
+  backdrop-filter: blur(28px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
 }
 
-.speed-title { font-size: 10px; color: var(--dock-sub); text-align: center; }
-.speed-option-item { padding: 5px 8px; border-radius: 8px; border: none; background: transparent; color: var(--dock-text); font-size: 11px; text-align: left; cursor: pointer; }
-.speed-option-item:hover, .speed-option-item.active { background: var(--glass-hover-bg); color: var(--accent-color); }
+.speed-title {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: var(--dock-sub) !important;
+  text-align: center !important;
+  padding-bottom: 4px !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+  margin-bottom: 4px !important;
+  text-transform: uppercase !important;
+}
+
+.speed-option-item {
+  padding: 6px 10px !important;
+  border-radius: 10px !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--dock-text) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.speed-option-item:hover, .speed-option-item.active {
+  background: var(--glass-hover-bg) !important;
+  color: #00f2fe !important;
+  font-weight: 700 !important;
+  padding-left: 14px !important;
+}
 
 .volume-bar { width: 60px; height: 4px; accent-color: #ffffff; cursor: pointer; }
 
@@ -856,6 +898,7 @@ button {
   gap: 8px;
   font-size: 13px;
   color: #ffffff !important;
+  width: 100% !important;
 }
 
 .site-footer strong { color: #fffb00; }
@@ -1077,7 +1120,6 @@ button {
   border: none;
 }
 
-/* KHU VỰC RADAR VISUALIZER 8D */
 .radar-8d-box {
   position: relative;
   width: 100%;
@@ -1130,7 +1172,6 @@ button {
 .radar-channel-label.left { left: 10px; }
 .radar-channel-label.right { right: 10px; }
 
-/* SLIDERS VÀ PRESETS */
 .dsp-control-group {
   display: flex;
   flex-direction: column;
@@ -1305,7 +1346,6 @@ button {
   margin: 4px 0;
 }
 
-/* Các lớp Animation ứng với từng preset */
 .song-card.anim-zoom-in {
   animation: cardZoomIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
 }
@@ -1352,10 +1392,7 @@ button {
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* =========================================================
-   CỐ ĐỊNH MÀU THANH TÌM KIẾM (KHÔNG ĐỔI MÀU THEO THEME/LED)
-   ========================================================= */
-
+/* CỐ ĐỊNH MÀU THANH TÌM KIẾM */
 .search-bar,
 .search-bar.glass-card {
   background: rgba(255, 255, 255, 0.92) !important;
@@ -1388,14 +1425,18 @@ button {
 }
 
 /* =========================================================
-   BỘ CẤU HÌNH RESPONSIVE ĐA THIẾT BỊ (MÁY TÍNH / TABLET / MOBILE)
+   BỘ RESPONSIVE ĐỒNG BỘ CĂN LỀ GIỮA FOOTER & PLAYER DOCK
    ========================================================= */
 
-/* 1. MÀN HÌNH LAPTOP VÀ MÁY TÍNH BẢNG NHỎ (Dưới 1024px) */
 @media screen and (max-width: 1024px) {
   .app-container {
-    padding: 18px 20px;
-    padding-bottom: 210px;
+    padding: 18px 16px !important;
+    padding-bottom: 180px !important;
+  }
+
+  .player-dock {
+    left: 16px !important;
+    right: 16px !important;
   }
 
   .glass-nav {
@@ -1424,46 +1465,35 @@ button {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 12px;
   }
-
-  .player-dock {
-    flex-wrap: wrap;
-    padding: 12px 16px;
-    gap: 10px;
-    left: 12px !important;
-    right: 12px !important;
-  }
-
-  .player-left {
-    flex: 1 1 60%;
-    max-width: 65%;
-  }
-
-  .player-right {
-    flex: 1 1 35%;
-    justify-content: flex-end;
-  }
-
-  .player-center {
-    flex: 1 1 100%;
-    max-width: 100%;
-    order: 3;
-    margin-top: 4px;
-  }
-
-  .visualizer-canvas {
-    display: none;
-  }
 }
 
-/* 2. MÀN HÌNH MÁY TÍNH BẢNG VÀ MÔ BỊ (Dưới 768px) */
 @media screen and (max-width: 768px) {
   .app-container {
-    padding: 12px 14px;
-    padding-bottom: 230px;
+    padding: 12px 12px !important;
+    padding-bottom: 160px !important;
+  }
+
+  .player-dock {
+    position: fixed !important;
+    bottom: 8px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    padding: 8px 10px !important;
+    border-radius: 18px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45) !important;
+    box-sizing: border-box !important;
+  }
+
+  .player-dock.rgb-chase-box::after {
+    clip-path: inset(0 round 18px) !important;
   }
 
   .brand h1 {
-    font-size: 17px;
+    font-size: 16px;
   }
 
   .header-controls {
@@ -1481,18 +1511,18 @@ button {
   }
 
   .songs-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+    grid-template-columns: 1fr;
     gap: 10px;
   }
 
   .song-card {
-    min-height: 68px;
-    padding: 8px 12px;
+    min-height: 64px;
+    padding: 8px 10px;
   }
 
   .thumb-container {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
   }
 
   .song-info h3 {
@@ -1503,143 +1533,21 @@ button {
     font-size: 11px;
   }
 
-  /* DSP Audio & Custom Media Grid */
   .dsp-grid, .media-grid, .playlists-list-grid {
     grid-template-columns: 1fr;
   }
 
-  /* Player Dock Mobile Layout */
-  .player-dock {
-    bottom: 8px !important;
-    padding: 10px 14px;
-    border-radius: 20px !important;
-  }
-
-  .song-meta h4 {
-    max-width: 130px;
-    font-size: 12px;
-  }
-
-  .song-meta p {
-    max-width: 130px;
-    font-size: 10px;
-  }
-
-  .controls-group {
-    gap: 12px;
-  }
-
-  .play-btn {
-    font-size: 22px;
-  }
-
-  .ctrl-btn {
-    font-size: 15px;
-  }
-
-  .player-right {
-    gap: 6px;
-    overflow-x: auto;
-    padding-bottom: 2px;
-  }
-
-  .video-toggle-btn, .bgplay-toggle-btn, .autoplay-toggle-btn, .speed-toggle-btn {
-    padding: 4px 8px;
-    font-size: 9px;
-  }
-
-  .volume-bar {
-    width: 45px;
-  }
-
-  .recommend-popup-card {
-    left: 12px;
-    right: 12px;
-    width: auto;
-    bottom: 210px;
-  }
-
-  .video-glass-box {
-    height: 220px;
-  }
-}
-
-/* 3. MÀN HÌNH ĐIỆN THOẠI NHỎ (Dưới 480px) */
-@media screen and (max-width: 480px) {
-  .app-container {
-    padding: 10px;
-    padding-bottom: 240px;
-  }
-
-  .nav-left {
-    gap: 6px;
-  }
-
-  .song-anim-btn, .led-style-btn {
-    padding: 5px 8px;
-    font-size: 10px;
-  }
-
-  .search-bar input {
-    font-size: 12px;
-    padding: 6px 10px;
-  }
-
-  .search-submit-btn {
-    padding: 6px 14px !important;
-    font-size: 11px !important;
-  }
-
-  .player-dock {
-    padding: 8px 10px;
+  .player-left {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
   }
 
   .album-art-wrapper img {
-    width: 38px;
-    height: 38px;
-  }
-
-  .song-meta h4 {
-    max-width: 100px;
-  }
-
-  .song-meta p {
-    max-width: 100px;
-  }
-
-  .player-right {
-    max-width: 120px;
-  }
-
-  .volume-bar {
-    display: none;
-  }
-}
-/* =========================================================
-   FIX TRIỆT ĐỂ BẢN NHẠC (PLAYER DOCK) BỊ DÀI / LỆCH TRÊN MOBILE
-   ========================================================= */
-
-@media screen and (max-width: 768px) {
-  /* Thu gọn khung Player Dock cố định vừa vặn dưới đáy */
-  .player-dock {
-    position: fixed !important;
-    bottom: 8px !important;
-    left: 8px !important;
-    right: 8px !important;
-    padding: 8px 12px !important;
-    border-radius: 20px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 6px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
-  }
-
-  /* Hàng 1: Ảnh + Tên bài hát & Nút yêu thích */
-  .player-left {
-    width: 100% !important;
-    flex: 0 0 auto !important;
-    max-width: 100% !important;
-    justify-content: space-between !important;
+    width: 38px !important;
+    height: 38px !important;
   }
 
   .song-meta {
@@ -1648,37 +1556,49 @@ button {
   }
 
   .song-meta h4 {
-    max-width: 140px !important;
+    max-width: 130px !important;
     font-size: 12px !important;
+    line-height: 1.2 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
 
   .song-meta p {
-    max-width: 140px !important;
+    max-width: 130px !important;
     font-size: 10px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
 
-  /* Hàng 2: Thanh tiến trình thời gian nhạc */
   .player-center {
-    width: 100% !important;
-    max-width: 100% !important;
+    width: auto !important;
     margin: 0 !important;
-    gap: 2px !important;
+    flex-direction: row !important;
+  }
+
+  .controls-group {
+    gap: 8px !important;
+  }
+
+  .play-btn {
+    font-size: 22px !important;
+  }
+
+  .ctrl-btn {
+    font-size: 15px !important;
   }
 
   .progress-container {
     width: 100% !important;
     gap: 6px !important;
+    margin-top: 2px !important;
   }
 
   .progress-bar {
     flex: 1 !important;
-    height: 4px !important;
+    height: 3px !important;
   }
 
   .time-text {
@@ -1686,20 +1606,17 @@ button {
     width: 28px !important;
   }
 
-  /* Hàng 3: Các nút chức năng (Nền, Auto, Video, Speed) cuộn ngang mượt 1 dòng */
   .player-right {
     width: 100% !important;
-    max-width: 100% !important;
-    justify-content: flex-start !important;
+    display: flex !important;
     gap: 6px !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
-    white-space: nowrap !important;
-    padding: 2px 0 !important;
+    padding-top: 4px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Ẩn thanh cuộn xấu xí trên di động */
   .player-right::-webkit-scrollbar {
     display: none !important;
   }
@@ -1708,44 +1625,61 @@ button {
   .bgplay-toggle-btn,
   .autoplay-toggle-btn,
   .speed-toggle-btn {
-    padding: 4px 8px !important;
-    font-size: 10px !important;
+    padding: 3px 8px !important;
+    font-size: 9px !important;
+    border-radius: 10px !important;
+    white-space: nowrap !important;
     flex-shrink: 0 !important;
-    border-radius: 12px !important;
   }
 
-  /* Ẩn thanh Volume trên di động để dành khoảng trống (dùng phím âm lượng điện thoại) */
-  .volume-bar {
+  .volume-bar,
+  .visualizer-canvas {
     display: none !important;
+  }
+
+  .video-glass-box {
+    height: 220px !important;
+  }
+
+  .recommend-popup-card {
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    bottom: 160px !important;
   }
 }
 
 @media screen and (max-width: 480px) {
-  .player-dock {
-    padding: 6px 10px !important;
-    bottom: 6px !important;
-    left: 6px !important;
-    right: 6px !important;
+  .app-container {
+    padding: 8px !important;
+    padding-bottom: 150px !important;
   }
 
-  .album-art-wrapper img {
-    width: 36px !important;
-    height: 36px !important;
+  .player-dock {
+    left: 8px !important;
+    right: 8px !important;
+  }
+
+  .song-anim-btn, .led-style-btn {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+  }
+
+  .search-bar input {
+    font-size: 12px !important;
+    padding: 6px 8px !important;
+  }
+
+  .search-submit-btn {
+    padding: 6px 12px !important;
+    font-size: 11px !important;
   }
 
   .song-meta h4 {
-    max-width: 110px !important;
+    max-width: 100px !important;
   }
 
   .song-meta p {
-    max-width: 110px !important;
-  }
-
-  .play-btn {
-    font-size: 20px !important;
-  }
-
-  .ctrl-btn {
-    font-size: 14px !important;
+    max-width: 100px !important;
   }
 }
