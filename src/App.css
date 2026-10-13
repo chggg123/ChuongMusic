@@ -184,6 +184,8 @@ html, body, #root {
   cursor: pointer;
   min-height: 82px;
   gap: 12px;
+  position: relative;
+  border-radius: 20px !important;
 }
 
 .song-card:hover {
@@ -1397,28 +1399,55 @@ button {
   }
 }
 
-/* 2. Màn hình Điện Thoại Android & iPhone (Max 768px) */
+/* 2. Màn hình Điện Thoại Android & iPhone (Max 768px) - TỐI ƯU SIÊU MƯỢT 60 FPS */
 @media (max-width: 768px) {
-  /* Tối ưu hiệu năng GPU di động: giảm độ nhòe Blur & tắt hiệu ứng lớp bóng phụ */
+  /* Tắt animation Blob biến hình nặng GPU */
   .blob {
+    animation: none !important;
     filter: blur(40px) !important;
-    opacity: 0.45 !important;
+    opacity: 0.35 !important;
+  }
+  .blob-3, .blob-4, .blob-5 {
+    display: none !important;
   }
 
-  .glass-card,
-  .search-bar,
-  .player-dock {
-    backdrop-filter: blur(10px) saturate(150%) !important;
-    -webkit-backdrop-filter: blur(10px) saturate(150%) !important;
-  }
-
+  /* Dừng xoay viền LED RGB, đổi sang viền tĩnh nhẹ */
+  .rgb-chase-box::before,
   .rgb-chase-box::after {
-    display: none !important; /* Tắt bớt lớp blur bóng LED thứ 2 trên di động để mượt 60fps */
+    animation: none !important;
+    background: linear-gradient(135deg, #00f2fe, #ff007f) !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Tắt backdrop-filter trên các thẻ bài hát để cuộn (scroll) mượt 60fps */
+  .song-card,
+  .glass-card:not(.player-dock):not(.glass-nav) {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(15, 20, 28, 0.8) !important;
+  }
+
+  .light .song-card,
+  .light .glass-card:not(.player-dock):not(.glass-nav) {
+    background: rgba(255, 255, 255, 0.88) !important;
+  }
+
+  /* Giữ backdrop-filter vừa đủ ở Thanh Player Dock & Navbar */
+  .player-dock,
+  .glass-nav {
+    backdrop-filter: blur(10px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(140%) !important;
+  }
+
+  /* Tắt hiệu ứng 3D hover trên cảm ứng */
+  .song-card:hover,
+  .float-3d-card:hover {
+    transform: none !important;
   }
 
   .app-container {
     padding: 12px 14px;
-    padding-bottom: 240px; /* Thêm padding đáy để Dock không đè mất nội dung bài hát */
+    padding-bottom: 240px;
   }
 
   .glass-nav {
@@ -1463,7 +1492,7 @@ button {
     font-size: 12px;
   }
 
-  /* CHUYỂN PLAYER DOCK THÀNH DẠNG XẾP TẦNG GỌN GÀNG CHO ĐIỆN THOẠI */
+  /* CHUYỂN PLAYER DOCK THÀNH DẠNG XẾP TẦNG GỌN GÀNG FOR MOBILE */
   .player-dock {
     flex-direction: column !important;
     bottom: 10px !important;
@@ -1517,7 +1546,6 @@ button {
     width: 60px !important;
   }
 
-  /* Popup bài hát gợi ý tự động trên Mobile */
   .recommend-popup-card {
     bottom: 220px !important;
     left: 10px !important;
@@ -1525,7 +1553,6 @@ button {
     width: auto !important;
   }
 
-  /* Khung Video YouTube tự co giãn theo tỷ lệ 16:9 */
   .video-glass-box {
     height: auto;
     aspect-ratio: 16 / 9;
@@ -1556,7 +1583,7 @@ button {
 /* 3. Màn hình Điện thoại Cỡ Nhỏ (Max 480px) */
 @media (max-width: 480px) {
   .brand h1 {
-    display: none; /* Ẩn tên ứng dụng trên màn hình quá bé để chừa chỗ cho thanh tìm kiếm */
+    display: none;
   }
 
   .header-controls {
