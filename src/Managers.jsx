@@ -40,7 +40,7 @@ export const CustomMediaManager = ({
         </div>
       </div>
 
-      {/* --- MỤC 1: BỘ NỀN MẪU CÓ SẮN --- */}
+      {/* --- MỤC 1: BỘ NỀN MẪU HD CÓ SẴN (12 MẪU) --- */}
       <div className="preset-section" style={{ marginTop: '10px' }}>
         <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           ✨ Kho Nền Mẫu Đẹp Có Sẵn (1-Click)
@@ -48,6 +48,7 @@ export const CustomMediaManager = ({
         <div className="media-grid">
           {PRESET_BACKGROUNDS.map((preset) => {
             const isSelected = activeBackground?.id === preset.id;
+
             return (
               <div
                 key={preset.id}
@@ -60,7 +61,16 @@ export const CustomMediaManager = ({
               >
                 <div className="media-preview-box">
                   <img src={preset.url} alt={preset.name} className="preview-thumb" />
-                  <span className="type-badge" style={{ background: 'rgba(0, 242, 254, 0.8)', color: '#000', fontWeight: 'bold' }}>PRESET</span>
+                  <span
+                    className="type-badge"
+                    style={{
+                      background: 'rgba(0, 242, 254, 0.85)',
+                      color: '#000000',
+                      fontWeight: '800'
+                    }}
+                  >
+                    PRESET
+                  </span>
                 </div>
 
                 <div className="media-card-footer" style={{ justifyContent: 'center' }}>
@@ -100,7 +110,7 @@ export const CustomMediaManager = ({
                 >
                   <div className="media-preview-box">
                     {item.type === 'video' ? (
-                      <video src={item.url} muted className="preview-thumb" />
+                      <video src={item.url} autoPlay loop muted playsInline className="preview-thumb" />
                     ) : (
                       <img src={item.url} alt={item.name} className="preview-thumb" />
                     )}
