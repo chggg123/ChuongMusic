@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import './App.css';
+
+// TỰ ĐỘNG CHUYỂN API BASE: Nhận diện chạy Local thì dùng localhost, chạy Online thì gọi Server Render
 const API_BASE = 'https://chuongmusic-sever.onrender.com/api';
 const SPEED_RATES = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
@@ -103,11 +105,10 @@ function App() {
     localStorage.setItem('liquid_bgplay', JSON.stringify(backgroundPlay));
   }, [backgroundPlay]);
 
-  // XỦ LÝ TỰ ĐỘNG DỪNG NHẠC KHI TẮT NỀN VÀ CHUYỂN TAB
+  // XỬ LÝ TỰ ĐỘNG DỪNG NHẠC KHI TẮT NỀN VÀ CHUYỂN TAB
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // Khi người dùng chuyển tab hoặc ẩn trình duyệt
         if (!backgroundPlay && isPlaying && playerRef.current && playerRef.current.pauseVideo) {
           playerRef.current.pauseVideo();
           setIsPlaying(false);
@@ -485,8 +486,9 @@ function App() {
     handleNext();
   };
 
+  // TẮT CHẠY CANVAS HẠT NỀN TRÊN ĐIỆN THOẠI (<768PX) ĐỂ DÀNH TÀI NGUYÊN CHO PHÁT NHẠC
   useEffect(() => {
-    if (activeBackground) return;
+    if (activeBackground || window.innerWidth < 768) return;
 
     const canvas = bgCanvasRef.current;
     if (!canvas) return;
@@ -503,7 +505,7 @@ function App() {
     window.addEventListener('resize', handleResize);
 
     const colors = ['#00f2fe', '#ff007f', '#38ef7d', '#ffb100', '#9900ff'];
-    const particles = Array.from({ length: 45 }, () => ({
+    const particles = Array.from({ length: 40 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
       radius: Math.random() * 2.5 + 1.2,
@@ -555,11 +557,12 @@ function App() {
     };
   }, [isPlaying, activeBackground]);
 
+  // VISUALIZER CANVAS SÓNG NHẠC (GIẢM SỐ CỘT SÓNG NẾU Ở MOBILE)
   useEffect(() => {
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    const bars = 26;
+    const bars = window.innerWidth < 768 ? 16 : 26;
 
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -747,7 +750,7 @@ function App() {
 
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
 
-      {/* HEADER NAVBAR (CHỈ GIỮ 1 NÚT ĐỔI GỢI Ý) */}
+      {/* HEADER NAVBAR */}
       <header className="glass-nav">
         <div className="nav-left">
           <button className="hamburger-btn glass-card glow-hover-btn" onClick={() => setSidebarOpen(true)} title="Mở Menu">☰</button>
