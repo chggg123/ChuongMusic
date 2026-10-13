@@ -11,6 +11,51 @@ import { CustomMediaManager, PlaylistManager, QueueManager } from './Managers';
 import { AudioManager } from './AudioManager';
 import { useAudioDSP } from './useAudioDSP';
 
+// =========================================================
+// QUẢN LÝ BỘ NHỚ INDEXEDDB LƯU FILE DUNG LƯỢNG LỚN (KHÔNG LỖI 5MB)
+// =========================================================
+const DB_NAME = 'ChuongMusicDB';
+const STORE_NAME = 'custom_media';
+
+const initDB = () => {
+  return new Promise((resolve) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(null);
+  });
+};
+
+const saveMediaDB = async (item) => {
+  const db = await initDB();
+  if (!db) return;
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  tx.objectStore(STORE_NAME).put(item);
+};
+
+const getAllMediaDB = async () => {
+  const db = await initDB();
+  if (!db) return [];
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => resolve([]);
+  });
+};
+
+const deleteMediaDB = async (id) => {
+  const db = await initDB();
+  if (!db) return;
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  tx.objectStore(STORE_NAME).delete(id);
+};
+
 function App() {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -27,7 +72,6 @@ function App() {
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
 
-  // STATE TÙY CHỈNH ANIMATION XUẤT HIỆN BÀI HÁT
   const [cardAnimation, setCardAnimation] = useState(() => {
     return localStorage.getItem('liquid_card_anim') || 'zoom-in';
   });
@@ -101,10 +145,8 @@ function App() {
   const [showVideo, setShowVideo] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
-  const [customMediaList, setCustomMediaList] = useState(() => {
-    const saved = localStorage.getItem('liquid_custom_media');
-    return saved ? JSON.parse(saved) : [];
-  });
+  // LƯU TRỮ VÀ TẢI MEDIA TỪ INDEXEDDB CHỐNG TRÀN BỘ NHỚ
+  const [customMediaList, setCustomMediaList] = useState([]);
 
   const [activeBackground, setActiveBackground] = useState(() => {
     const saved = localStorage.getItem('liquid_active_bg');
@@ -118,15 +160,27 @@ function App() {
 
   const currentSong = currentIndex >= 0 ? songs[currentIndex] : null;
 
+  // DỌN DẸP BỘ NHỚ LOCALSTORAGE CŨ BỊ ĐẦY TRÀN
   useEffect(() => {
-    try {
-      localStorage.setItem('liquid_custom_media', JSON.stringify(customMediaList));
-    } catch (e) {}
-  }, [customMediaList]);
+    localStorage.removeItem('liquid_custom_media');
+    
+    getAllMediaDB().then((items) => {
+      const listWithUrls = items.map((item) => ({
+        ...item,
+        url: item.file ? URL.createObjectURL(item.file) : item.url
+      }));
+      setCustomMediaList(listWithUrls);
+    });
+  }, []);
 
   useEffect(() => {
     if (activeBackground) {
-      localStorage.setItem('liquid_active_bg', JSON.stringify(activeBackground));
+      localStorage.setItem('liquid_active_bg', JSON.stringify({
+        id: activeBackground.id,
+        name: activeBackground.name,
+        type: activeBackground.type,
+        url: activeBackground.url
+      }));
     } else {
       localStorage.removeItem('liquid_active_bg');
     }
@@ -171,6 +225,7 @@ function App() {
   const handleResetUserData = () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa toàn bộ dữ liệu ứng dụng không?')) {
       localStorage.clear();
+      indexedDB.deleteDatabase(DB_NAME);
       setPlayHistory([]);
       setFavorites([]);
       setSearchHistory([]);
@@ -222,50 +277,43 @@ function App() {
     handleRefreshRecommendations();
   }, []);
 
-  const handleFileUpload = (e) => {
+  // XỬ LÝ UPLOAD FILE SIÊU TỐC KHÔNG LO DUNG LƯỢNG LỚN
+  const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
 
-    const readPromises = files.map((file) => {
-      return new Promise((resolve) => {
-        let type = 'image';
-        if (file.type.startsWith('video/')) type = 'video';
-        else if (file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif')) type = 'gif';
+    const newMediaItems = [];
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          resolve({
-            id: Date.now() + Math.random().toString(36).substring(2, 9),
-            name: file.name,
-            type: type,
-            url: event.target.result
-          });
-        };
-        reader.readAsDataURL(file);
-      });
-    });
+    for (const file of files) {
+      let type = 'image';
+      if (file.type.startsWith('video/')) type = 'video';
+      else if (file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif')) type = 'gif';
 
-    Promise.all(readPromises).then((newMediaItems) => {
-      setCustomMediaList((prev) => {
-        const updated = [...prev, ...newMediaItems];
-        try {
-          localStorage.setItem('liquid_custom_media', JSON.stringify(updated));
-        } catch (err) {
-          alert('⚠️ Dung lượng file nền quá lớn!');
-        }
-        return updated;
-      });
+      const blobUrl = URL.createObjectURL(file);
+      const newItem = {
+        id: Date.now() + Math.random().toString(36).substring(2, 9),
+        name: file.name,
+        type: type,
+        file: file,
+        url: blobUrl
+      };
 
-      if (!activeBackground && newMediaItems.length > 0) {
-        setActiveBackground(newMediaItems[0]);
-      }
-    });
+      await saveMediaDB(newItem);
+      newMediaItems.push(newItem);
+    }
+
+    setCustomMediaList((prev) => [...prev, ...newMediaItems]);
+
+    if (!activeBackground && newMediaItems.length > 0) {
+      setActiveBackground(newMediaItems[0]);
+    }
 
     e.target.value = null;
   };
 
-  const handleDeleteMedia = (idToDelete, e) => {
+  const handleDeleteMedia = async (idToDelete, e) => {
     if (e) e.stopPropagation();
+    await deleteMediaDB(idToDelete);
     setCustomMediaList((prev) => prev.filter((item) => item.id !== idToDelete));
     if (activeBackground && activeBackground.id === idToDelete) setActiveBackground(null);
   };
