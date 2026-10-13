@@ -122,7 +122,7 @@ function App() {
     };
   }, [backgroundPlay, isPlaying]);
 
-  // CẤU HÌNH MEDIA SESSION API ĐỂ PHÁT Ở MÀN HÌNH KHÓA/THÔNG BÁO
+  // CẤU HÌNH MEDIA SESSION API ĐỂ PHÁT TRÊN MÀN HÌNH KHÓA/THANH THÔNG BÁO
   useEffect(() => {
     if (!('mediaSession' in navigator) || !currentSong) return;
 
@@ -486,9 +486,9 @@ function App() {
     handleNext();
   };
 
-  // TẮT CHẠY CANVAS HẠT NỀN TRÊN ĐIỆN THOẠI (<768PX) ĐỂ DÀNH TÀI NGUYÊN CHO PHÁT NHẠC
+  // GIỮ HIỆU ỨNG HẠT NỀN LUNG LINH (TỰ ĐIỀU CHỈNH 15 HẠT CHO MOBILE, 40 HẠT CHO DESKTOP)
   useEffect(() => {
-    if (activeBackground || window.innerWidth < 768) return;
+    if (activeBackground) return;
 
     const canvas = bgCanvasRef.current;
     if (!canvas) return;
@@ -505,14 +505,16 @@ function App() {
     window.addEventListener('resize', handleResize);
 
     const colors = ['#00f2fe', '#ff007f', '#38ef7d', '#ffb100', '#9900ff'];
-    const particles = Array.from({ length: 40 }, () => ({
+    const particleCount = window.innerWidth < 768 ? 15 : 40;
+
+    const particles = Array.from({ length: particleCount }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      radius: Math.random() * 2.5 + 1.2,
+      radius: Math.random() * 2 + 1,
       color: colors[Math.floor(Math.random() * colors.length)],
-      vx: (Math.random() - 0.5) * 0.6,
-      vy: (Math.random() - 0.5) * 0.6,
-      alpha: Math.random() * 0.6 + 0.3,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      alpha: Math.random() * 0.5 + 0.3,
       pulseSpeed: Math.random() * 0.02 + 0.008,
     }));
 
@@ -520,7 +522,7 @@ function App() {
       ctx.clearRect(0, 0, width, height);
 
       particles.forEach((p) => {
-        const speed = isPlaying ? 1.4 : 0.7;
+        const speed = isPlaying ? 1.2 : 0.6;
         p.x += p.vx * speed;
         p.y += p.vy * speed;
 
@@ -530,12 +532,12 @@ function App() {
         if (p.y > height) p.y = 0;
 
         p.alpha += Math.sin(Date.now() * p.pulseSpeed) * 0.01;
-        const currentAlpha = Math.max(0.15, Math.min(0.85, p.alpha));
+        const currentAlpha = Math.max(0.15, Math.min(0.75, p.alpha));
 
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius * 2.5, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.radius * 2, 0, Math.PI * 2);
         ctx.fillStyle = p.color;
-        ctx.globalAlpha = currentAlpha * 0.25;
+        ctx.globalAlpha = currentAlpha * 0.2;
         ctx.fill();
 
         ctx.beginPath();
@@ -557,7 +559,7 @@ function App() {
     };
   }, [isPlaying, activeBackground]);
 
-  // VISUALIZER CANVAS SÓNG NHẠC (GIẢM SỐ CỘT SÓNG NẾU Ở MOBILE)
+  // VISUALIZER CANVAS SÓNG NHẠC
   useEffect(() => {
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
