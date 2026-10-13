@@ -63,6 +63,7 @@ html, body, #root {
   --blob-opacity: 0.45;
 }
 
+/* LỀ CONTAINER TRÊN DESKTOP: 36PX HỒI QUAN PHÍM PLAYER DOCK THU VỀ 36PX */
 .app-container {
   width: 100% !important;
   max-width: 100% !important;
@@ -168,29 +169,23 @@ html, body, #root {
 }
 
 /* =========================================================
-   CẤU TRÚC ĐÈN LED RGB BO VIỀN (ĐÃ FIX CHUẨN ĐÚNG 2PX VIỀN)
+   CẤU TRÚC GỐC ĐÈN LED RGB BO VIỀN
    ========================================================= */
 
 .rgb-chase-box,
 .site-footer.always-rgb-footer {
   position: relative !important;
-  background: transparent !important; /* Không đặt màu nền ở phần tử gốc để tránh che ::after */
+  background: transparent !important;
   border: none !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 16px rgba(0, 242, 254, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 20px rgba(0, 242, 254, 0.25) !important;
   color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
   overflow: hidden !important;
   z-index: 1 !important;
   padding: 2px !important;
   border-radius: 20px !important;
 }
 
-/* Cho phép Player Dock mở rộng menu Speed mà không bị cắt viền */
-.player-dock.rgb-chase-box,
-.player-dock {
-  overflow: visible !important;
-}
-
-/* NỀN TRONG CHE PHẦN GIỮA (LƯU NỀN ĐỤC ĐỂ CHỐNG XUYÊN MÀU RGB VÀO NỘI DUNG) */
 .rgb-chase-box::before,
 .site-footer.always-rgb-footer::before {
   content: '' !important;
@@ -198,46 +193,31 @@ html, body, #root {
   position: absolute !important;
   inset: 2px !important;
   border-radius: 18px !important;
-  background: #0c1220 !important;
+  background: rgba(12, 18, 32, 0.92) !important;
   backdrop-filter: blur(28px) saturate(200%) !important;
   -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
   z-index: 1 !important;
 }
 
 .light .rgb-chase-box::before {
-  background: #f1f5f9 !important;
+  background: rgba(245, 248, 252, 0.92) !important;
 }
 
-.dark .rgb-chase-box::before {
-  background: #0c1220 !important;
-}
-
-/* NỀN TRONG CHO PLAYER DOCK */
 .player-dock.rgb-chase-box::before {
+  background: var(--dock-bg, rgba(12, 18, 32, 0.95)) !important;
   border-radius: 22px !important;
 }
-.dark .player-dock.rgb-chase-box::before {
-  background: #0c1220 !important;
-}
-.light .player-dock.rgb-chase-box::before {
-  background: #f8fafc !important;
+
+.search-bar.rgb-chase-box {
+  border-radius: 30px !important;
 }
 
-/* NỀN TRONG FOOTER LUÔN LÀ DARK SLATE ĐỂ CHỮ NỔI BẬT */
-.site-footer.always-rgb-footer::before {
-  background: #0f172a !important;
-  border-radius: 18px !important;
+.search-bar.rgb-chase-box::before {
+  border-radius: 28px !important;
 }
 
-/* NỀN TRONG CHO BÀI HÁT ĐANG PHÁT (ACTIVE SONG CARD) */
 .song-card.rgb-chase-box::before {
   border-radius: 16px !important;
-}
-.dark .song-card.rgb-chase-box::before {
-  background: #0f172a !important;
-}
-.light .song-card.rgb-chase-box::before {
-  background: #ffffff !important;
 }
 
 .rgb-chase-box > *,
@@ -246,7 +226,10 @@ html, body, #root {
   z-index: 2 !important;
 }
 
-/* DẢI ĐÈN CẦU VỒNG XOY LỚP DƯỚI */
+/* =========================================================
+   PHONG CÁCH HIỆU ỨNG LED RGB & ĐỘ SÁNG
+   ========================================================= */
+
 .rgb-chase-box::after,
 .site-footer.always-rgb-footer::after {
   content: '' !important;
@@ -255,10 +238,6 @@ html, body, #root {
   pointer-events: none !important;
   opacity: var(--led-opacity, 0.8) !important;
   will-change: transform, opacity;
-}
-
-.player-dock.rgb-chase-box::after {
-  clip-path: inset(0 round 24px) !important;
 }
 
 /* 1. TRÁI SANG PHẢI (LTR) */
@@ -388,7 +367,7 @@ html, body, #root {
 }
 
 /* =========================================================
-   THẺ BÀI HÁT & MÀU CHỮ BÀI HÁT ĐANG PHÁT (ACTIVE)
+   THẺ BÀI HÁT
    ========================================================= */
 
 .song-card {
@@ -466,23 +445,10 @@ html, body, #root {
   text-overflow: ellipsis;
 }
 
-/* CHỮ CHO THẺ ACTIVE MÀU SÁNG & MÀU TỐI SẮC NÉT */
-.light .song-card.active .song-info h3 {
-  color: #0f172a !important;
-  text-shadow: none !important;
-}
-.light .song-card.active .song-info p {
-  color: #475569 !important;
-  text-shadow: none !important;
-}
-
-.dark .song-card.active .song-info h3 {
+.song-card.active .song-info h3,
+.song-card.active .song-info p {
   color: #ffffff !important;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
-}
-.dark .song-card.active .song-info p {
-  color: #cbd5e1 !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 button {
@@ -683,7 +649,7 @@ button {
 .reset-user-data-btn { border-color: rgba(255, 77, 77, 0.5) !important; color: #ff4d4d; }
 .led-toggle-btn.active { border-color: var(--accent-color) !important; }
 
-/* PLAYER DOCK BOTTOM BAR */
+/* PLAYER DOCK BOTTOM BAR (DESKTOP - ĐỒNG BỘ CĂN LỀ 36PX NHƯ FOOTER) */
 .player-dock {
   position: fixed !important;
   bottom: 12px !important;
@@ -750,55 +716,24 @@ button {
 .speed-menu-container { position: relative; }
 .speed-toggle-btn { padding: 5px 10px; border-radius: 14px; border: 1px solid #00f2fe; background: rgba(0, 242, 254, 0.3); color: #ffffff; font-weight: bold; font-size: 10px; cursor: pointer; }
 
-/* MENU SPEED DROPDOWN */
 .speed-dropdown-options {
-  position: absolute !important;
-  bottom: calc(100% + 12px) !important;
-  right: 0 !important;
-  width: 130px !important;
-  padding: 8px !important;
-  border-radius: 16px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 4px !important;
-  z-index: 2500 !important;
-  background: var(--dock-bg, rgba(12, 18, 32, 0.95)) !important;
-  backdrop-filter: blur(28px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
-  border: 1px solid var(--glass-border) !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  width: 120px;
+  padding: 6px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 1200;
+  background: var(--dock-bg);
+  backdrop-filter: blur(24px);
 }
 
-.speed-title {
-  font-size: 11px !important;
-  font-weight: 800 !important;
-  color: var(--dock-sub) !important;
-  text-align: center !important;
-  padding-bottom: 4px !important;
-  border-bottom: 1px solid var(--glass-border) !important;
-  margin-bottom: 4px !important;
-  text-transform: uppercase !important;
-}
-
-.speed-option-item {
-  padding: 6px 10px !important;
-  border-radius: 10px !important;
-  border: none !important;
-  background: transparent !important;
-  color: var(--dock-text) !important;
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  text-align: left !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-}
-
-.speed-option-item:hover, .speed-option-item.active {
-  background: var(--glass-hover-bg) !important;
-  color: #00f2fe !important;
-  font-weight: 700 !important;
-  padding-left: 14px !important;
-}
+.speed-title { font-size: 10px; color: var(--dock-sub); text-align: center; }
+.speed-option-item { padding: 5px 8px; border-radius: 8px; border: none; background: transparent; color: var(--dock-text); font-size: 11px; text-align: left; cursor: pointer; }
+.speed-option-item:hover, .speed-option-item.active { background: var(--glass-hover-bg); color: var(--accent-color); }
 
 .volume-bar { width: 60px; height: 4px; accent-color: #ffffff; cursor: pointer; }
 
@@ -1417,7 +1352,10 @@ button {
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* CỐ ĐỊNH MÀU THANH TÌM KIẾM */
+/* =========================================================
+   CỐ ĐỊNH MÀU THANH TÌM KIẾM (KHÔNG ĐỔI MÀU THEO THEME/LED)
+   ========================================================= */
+
 .search-bar,
 .search-bar.glass-card {
   background: rgba(255, 255, 255, 0.92) !important;
@@ -1453,6 +1391,7 @@ button {
    BỘ RESPONSIVE ĐỒNG BỘ CĂN LỀ GIỮA FOOTER & PLAYER DOCK
    ========================================================= */
 
+/* 1. TABLET & LAPTOP NHỎ (Dưới 1024px - Lề 16px) */
 @media screen and (max-width: 1024px) {
   .app-container {
     padding: 18px 16px !important;
@@ -1492,12 +1431,14 @@ button {
   }
 }
 
+/* 2. MÀN HÌNH DI ĐỘNG & TABLET NHỎ (Dưới 768px - Lề 12px) */
 @media screen and (max-width: 768px) {
   .app-container {
     padding: 12px 12px !important;
     padding-bottom: 160px !important;
   }
 
+  /* PLAYER DOCK VỪA KHÍT NẰM TRÊN LỀ 12PX ĐỒNG BỘ 100% VỚI FOOTER */
   .player-dock {
     position: fixed !important;
     bottom: 8px !important;
@@ -1511,10 +1452,6 @@ button {
     gap: 6px !important;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45) !important;
     box-sizing: border-box !important;
-  }
-
-  .player-dock.rgb-chase-box::after {
-    clip-path: inset(0 round 18px) !important;
   }
 
   .brand h1 {
@@ -1674,6 +1611,7 @@ button {
   }
 }
 
+/* 3. MÀN HÌNH ĐIỆN THOẠI NHỎ (Dưới 480px - Lề 8px) */
 @media screen and (max-width: 480px) {
   .app-container {
     padding: 8px !important;
