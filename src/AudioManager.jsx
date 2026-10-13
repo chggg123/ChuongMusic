@@ -151,18 +151,30 @@ export const AudioManager = ({
           </div>
         </div>
 
-        {/* CARD 5: SPEED / PITCH */}
+       {/* CARD 5: SPEED / PITCH */}
         <div className="dsp-card glass-card">
           <div className="dsp-card-header">
             <h3>⚡ Tốc Độ Nhạc (Speed)</h3>
             <span className="dsp-value-badge">{playbackRate}x</span>
           </div>
 
-          <div className="speed-buttons-grid">
-            {SPEED_RATES.map((rate) => (
+          <div className="dsp-control-group">
+            <label>Tốc độ phát: <strong>{playbackRate}x</strong> (0.25x ➔ 2.0x)</label>
+            <input
+              type="range"
+              min="0.25"
+              max="2.0"
+              step="0.05"
+              value={playbackRate}
+              onChange={(e) => changeSpeed(Number(e.target.value))}
+            />
+          </div>
+
+          <div className="preset-btn-group" style={{ marginTop: '8px' }}>
+            {[0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((rate) => (
               <button
                 key={rate}
-                className={`speed-chip-btn glow-hover-btn ${playbackRate === rate ? 'active' : ''}`}
+                className={`preset-chip ${playbackRate === rate ? 'active' : ''}`}
                 onClick={() => changeSpeed(rate)}
               >
                 {rate === 1.0 ? '1.0x (Gốc)' : `${rate}x`}
