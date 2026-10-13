@@ -11,6 +11,12 @@ html, body, #root {
   overflow-x: hidden;
 }
 
+/* Tối ưu render danh sách cuộn trên di động */
+.song-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 82px;
+}
+
 /* ===================================================
    CẤU HÌNH BIẾN MÀU SẮC DYNAMIC & KÍNH CRYSTAL GLASS
    =================================================== */
@@ -1356,8 +1362,29 @@ button {
   flex-shrink: 0;
 }
 
+/* NÚT PHÁT TRONG NỀN (BACKGROUND PLAY) */
+.bgplay-toggle-btn {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-hover-bg);
+  color: var(--dock-text);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bgplay-toggle-btn.active {
+  background: linear-gradient(135deg, #00f2fe, #38ef7d);
+  color: #000;
+  border-color: #00f2fe;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+}
+
 /* ===================================================
-   HỆ THỐNG RESPONSIVE (TỐI ƯU TABLET, ANDROID, IOS)
+   TỐI ƯU SIÊU MƯỢT CHO ĐIỆN THOẠI (GIỮ 100% HIỆU ỨNG)
    =================================================== */
 
 /* 1. Màn hình Tablet (Max 1024px) */
@@ -1399,50 +1426,45 @@ button {
   }
 }
 
-/* 2. Màn hình Điện Thoại Android & iPhone (Max 768px) - TỐI ƯU SIÊU MƯỢT 60 FPS */
+/* 2. Màn hình Điện Thoại Android & iPhone (Max 768px) */
 @media (max-width: 768px) {
-  /* Tắt animation Blob biến hình nặng GPU */
-  .blob {
-    animation: none !important;
-    filter: blur(40px) !important;
-    opacity: 0.35 !important;
+  /* GIỮ KÍNH MỜ - Tối ưu mức blur 12px cho GPU di động */
+  .glass-card,
+  .search-bar,
+  .player-dock,
+  .song-card {
+    backdrop-filter: blur(12px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
+    will-change: transform, opacity;
   }
-  .blob-3, .blob-4, .blob-5 {
+
+  /* GIỮ 5 BLOB UỐN LƯỢN - Giảm blur fill-rate vừa đủ để mượt 60fps */
+  .blob {
+    animation: liquidMorphGPU 18s infinite alternate cubic-bezier(0.4, 0, 0.2, 1) !important;
+    filter: blur(35px) !important;
+    opacity: 0.5 !important;
+    will-change: transform;
+  }
+
+  /* GIỮ VIỀN LED RGB XOAY 360° - Tối ưu qua Hardware Layer Compositing */
+  .rgb-chase-box::before {
+    animation: rotateRgbBorder 3.5s linear infinite !important;
+    will-change: transform;
+  }
+
+  /* Ẩn lớp blur bóng phụ thứ 2 để không bị redraw đè hai lần trên di động */
+  .rgb-chase-box::after {
     display: none !important;
   }
 
-  /* Dừng xoay viền LED RGB, đổi sang viền tĩnh nhẹ */
-  .rgb-chase-box::before,
-  .rgb-chase-box::after {
-    animation: none !important;
-    background: linear-gradient(135deg, #00f2fe, #ff007f) !important;
-    opacity: 0.6 !important;
-  }
-
-  /* Tắt backdrop-filter trên các thẻ bài hát để cuộn (scroll) mượt 60fps */
-  .song-card,
-  .glass-card:not(.player-dock):not(.glass-nav) {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: rgba(15, 20, 28, 0.8) !important;
-  }
-
-  .light .song-card,
-  .light .glass-card:not(.player-dock):not(.glass-nav) {
-    background: rgba(255, 255, 255, 0.88) !important;
-  }
-
-  /* Giữ backdrop-filter vừa đủ ở Thanh Player Dock & Navbar */
-  .player-dock,
-  .glass-nav {
-    backdrop-filter: blur(10px) saturate(140%) !important;
-    -webkit-backdrop-filter: blur(10px) saturate(140%) !important;
-  }
-
-  /* Tắt hiệu ứng 3D hover trên cảm ứng */
+  /* Đổi hover 3D thành phản hồi Touch nhẹ khi chạm */
   .song-card:hover,
   .float-3d-card:hover {
     transform: none !important;
+  }
+
+  .song-card:active {
+    transform: scale(0.98) translateZ(0) !important;
   }
 
   .app-container {
@@ -1473,7 +1495,12 @@ button {
 
   .songs-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
+  }
+
+  .song-card {
+    min-height: 72px;
+    padding: 10px;
   }
 
   .playlist-manager,
@@ -1492,15 +1519,15 @@ button {
     font-size: 12px;
   }
 
-  /* CHUYỂN PLAYER DOCK THÀNH DẠNG XẾP TẦNG GỌN GÀNG FOR MOBILE */
+  /* BỐ CỤC PLAYER DOCK CHO MOBILE */
   .player-dock {
     flex-direction: column !important;
     bottom: 10px !important;
     left: 10px !important;
     right: 10px !important;
-    padding: 12px 14px !important;
-    gap: 10px !important;
-    border-radius: 22px !important;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+    border-radius: 20px !important;
   }
 
   .player-left {
@@ -1519,7 +1546,7 @@ button {
 
   .visualizer-canvas {
     width: 100% !important;
-    max-width: 200px;
+    max-width: 180px;
   }
 
   .progress-container {
@@ -1557,27 +1584,6 @@ button {
     height: auto;
     aspect-ratio: 16 / 9;
   }
-}
-
-/* NÚT PHÁT TRONG NỀN (BACKGROUND PLAY) */
-.bgplay-toggle-btn {
-  padding: 6px 12px;
-  border-radius: 20px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass-hover-bg);
-  color: var(--dock-text);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.bgplay-toggle-btn.active {
-  background: linear-gradient(135deg, #00f2fe, #38ef7d);
-  color: #000;
-  border-color: #00f2fe;
-  font-weight: 700;
-  box-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
 }
 
 /* 3. Màn hình Điện thoại Cỡ Nhỏ (Max 480px) */
