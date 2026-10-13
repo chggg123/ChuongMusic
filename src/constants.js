@@ -2,6 +2,9 @@ export const API_BASE = 'https://chuongmusic-sever.onrender.com/api';
 export const SPEED_RATES = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
 export const HOT_TIKTOK_KEYWORDS = [
+  'nhạc tình yêu dễ thương',
+  'nhạc cafe buổi sáng',
+  'nhạc lofi nhẹ nhàng',
   'nhạc hot tiktok 2026',
   'nhạc chill tiktok',
   'nhạc tiktok trend',
