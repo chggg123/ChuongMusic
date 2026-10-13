@@ -5,20 +5,15 @@ export const HOT_TIKTOK_KEYWORDS = [
   'nhạc tình yêu dễ thương',
   'nhạc cafe buổi sáng',
   'nhạc lofi nhẹ nhàng',
-  'nhạc hot tiktok 2026',
   'nhạc chill tiktok',
-  'nhạc tiktok trend',
-  'nhạc remix tiktok hot',
-  'vpop hot tiktok',
   'nhạc lofi tiktok chill',
-  'nhạc edm tiktok gây nghiện',
   'nhạc tâm trạng tiktok',
-  'nhạc tiktok buồn',
   'nhạc lofi cực chill',
-  'nhạc tiktok remix',
   'nhạc tiktok mới nhất',
   'nhạc hot trend hiện nay',
-  'nhạc tình yêu vui tươi'
+  'nhạc trung dễ thương',
+  'nhạc trung cực chill',
+  'nhạc học bài'
 ];
 
 // BỘ 12 MẪU NỀN ẢNH HD SẮC NÉT - ĐÃ FIX LINK SAKURA ANIME CHILL
