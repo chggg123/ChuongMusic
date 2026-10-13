@@ -11,9 +11,7 @@ import { CustomMediaManager, PlaylistManager, QueueManager } from './Managers';
 import { AudioManager } from './AudioManager';
 import { useAudioDSP } from './useAudioDSP';
 
-// =========================================================
-// QUẢN LÝ BỘ NHỚ INDEXEDDB LƯU FILE DUNG LƯỢNG LỚN (KHÔNG LỖI 5MB)
-// =========================================================
+// QUẢN LÝ BỘ NHỚ INDEXEDDB LƯU FILE DUNG LƯỢNG LỚN
 const DB_NAME = 'ChuongMusicDB';
 const STORE_NAME = 'custom_media';
 
@@ -108,6 +106,28 @@ function App() {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
+  useEffect(() => {
+    localStorage.setItem('liquid_bgplay', JSON.stringify(backgroundPlay));
+  }, [backgroundPlay]);
+
+  // XỬ LÝ PHÁT NỀN KHI CHUYỂN TAB TRÌNH DUYỆT
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && !backgroundPlay && isPlaying) {
+        if (nativeAudioRef.current && !nativeAudioRef.current.paused) {
+          nativeAudioRef.current.pause();
+        }
+        if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
+          try { playerRef.current.pauseVideo(); } catch (e) {}
+        }
+        setIsPlaying(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [backgroundPlay, isPlaying]);
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
 
@@ -161,7 +181,6 @@ function App() {
 
   useEffect(() => {
     localStorage.removeItem('liquid_custom_media');
-    
     getAllMediaDB().then((items) => {
       const listWithUrls = items.map((item) => ({
         ...item,
@@ -602,39 +621,35 @@ function App() {
     playSong(Math.floor(Math.random() * songList.length), songList);
   };
 
-  // HÀM TẠM DỪNG / PHÁT BÀI HÁT ĐÃ ĐƯỢC FIX HOÀN HẢO
+  // FIX LỖI NÚT DỪNG / PHÁT NHẠC
   const togglePlayPause = () => {
     audioDSP.resumeAudioContext();
 
     if (isPlaying) {
-      // Đang phát -> Tạm dừng cả HTML5 Audio lẫn YouTube Player
-      if (nativeAudioRef.current && !nativeAudioRef.current.paused) {
+      if (nativeAudioRef.current) {
         nativeAudioRef.current.pause();
       }
       if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
-        try {
-          playerRef.current.pauseVideo();
-        } catch (e) {}
+        try { playerRef.current.pauseVideo(); } catch (e) {}
       }
       setIsPlaying(false);
     } else {
-      // Đang dừng -> Tiếp tục phát trình phát đang chạy
-      let hasNativePlay = false;
+      let hasPlayed = false;
 
       if (nativeAudioRef.current && nativeAudioRef.current.src) {
         nativeAudioRef.current.play().then(() => {
           setIsPlaying(true);
         }).catch(() => {
           if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
-            playerRef.current.playVideo();
+            try { playerRef.current.playVideo(); } catch (e) {}
             setIsPlaying(true);
           }
         });
-        hasNativePlay = true;
+        hasPlayed = true;
       }
 
-      if (!hasNativePlay && playerRef.current && typeof playerRef.current.playVideo === 'function') {
-        playerRef.current.playVideo();
+      if (!hasPlayed && playerRef.current && typeof playerRef.current.playVideo === 'function') {
+        try { playerRef.current.playVideo(); } catch (e) {}
         setIsPlaying(true);
       }
     }
@@ -665,10 +680,18 @@ function App() {
   };
 
   const changeSpeed = (rate) => {
-    setPlaybackRate(rate);
+    const numericRate = parseFloat(Number(rate).toFixed(2));
+    setPlaybackRate(numericRate);
     setShowSpeedMenu(false);
-    if (nativeAudioRef.current) nativeAudioRef.current.playbackRate = rate;
-    if (playerRef.current && playerRef.current.setPlaybackRate) playerRef.current.setPlaybackRate(rate);
+
+    if (nativeAudioRef.current) {
+      nativeAudioRef.current.playbackRate = numericRate;
+    }
+    if (playerRef.current && typeof playerRef.current.setPlaybackRate === 'function') {
+      try {
+        playerRef.current.setPlaybackRate(numericRate);
+      } catch (e) {}
+    }
   };
 
   const displayedSongs = activeTab === 'favorites' ? favorites : songs;
