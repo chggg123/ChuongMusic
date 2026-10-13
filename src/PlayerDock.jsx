@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { getHighResThumbnail, formatTime, SPEED_RATES } from './constants';
+import { getHighResThumbnail, formatTime } from './constants';
 
 export const PlayerDock = ({
   currentSong,
@@ -29,6 +29,22 @@ export const PlayerDock = ({
   handleVolumeChange
 }) => {
   const canvasRef = useRef(null);
+  const speedMenuRef = useRef(null);
+
+  // Lắng nghe sự kiện click bên ngoài để đóng menu Speed
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (speedMenuRef.current && !speedMenuRef.current.contains(event.target)) {
+        setShowSpeedMenu(false);
+      }
+    };
+    if (showSpeedMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSpeedMenu, setShowSpeedMenu]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -139,23 +155,27 @@ export const PlayerDock = ({
           {showVideo ? '🎵 Tắt Video' : '📹 Bật Video'}
         </button>
 
-        <div className="speed-menu-container">
+        <div className="speed-menu-container" ref={speedMenuRef}>
           <button className="speed-toggle-btn glow-hover-btn" onClick={() => setShowSpeedMenu(!showSpeedMenu)}>
-            ⚡ {playbackRate}x
+            ⚡ {playbackRate === 1 ? '1x' : `${playbackRate}x`}
           </button>
 
           {showSpeedMenu && (
-            <div className="speed-dropdown-options glass-card">
-              <p className="speed-title">Tốc độ</p>
-              {SPEED_RATES.map((rate) => (
-                <button
-                  key={rate}
-                  className={`speed-option-item ${playbackRate === rate ? 'active' : ''}`}
-                  onClick={() => changeSpeed(rate)}
-                >
-                  {rate === 1.0 ? '1.0x (Gốc)' : `${rate}x`}
-                </button>
-              ))}
+            <div className="speed-dropdown-options speed-liquid-glass">
+              <div className="speed-quick-presets horizontal">
+                {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
+                  <button
+                    key={rate}
+                    className={`speed-preset-btn ${playbackRate === rate ? 'active' : ''}`}
+                    onClick={() => {
+                      changeSpeed(rate);
+                      setShowSpeedMenu(false);
+                    }}
+                  >
+                    {rate === 1 ? '1x' : `${rate}x`}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
