@@ -1399,6 +1399,23 @@ button {
 
 /* 2. Màn hình Điện Thoại Android & iPhone (Max 768px) */
 @media (max-width: 768px) {
+  /* Tối ưu hiệu năng GPU di động: giảm độ nhòe Blur & tắt hiệu ứng lớp bóng phụ */
+  .blob {
+    filter: blur(40px) !important;
+    opacity: 0.45 !important;
+  }
+
+  .glass-card,
+  .search-bar,
+  .player-dock {
+    backdrop-filter: blur(10px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(150%) !important;
+  }
+
+  .rgb-chase-box::after {
+    display: none !important; /* Tắt bớt lớp blur bóng LED thứ 2 trên di động để mượt 60fps */
+  }
+
   .app-container {
     padding: 12px 14px;
     padding-bottom: 240px; /* Thêm padding đáy để Dock không đè mất nội dung bài hát */
@@ -1514,6 +1531,7 @@ button {
     aspect-ratio: 16 / 9;
   }
 }
+
 /* NÚT PHÁT TRONG NỀN (BACKGROUND PLAY) */
 .bgplay-toggle-btn {
   padding: 6px 12px;
@@ -1534,6 +1552,7 @@ button {
   font-weight: 700;
   box-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
 }
+
 /* 3. Màn hình Điện thoại Cỡ Nhỏ (Max 480px) */
 @media (max-width: 480px) {
   .brand h1 {
