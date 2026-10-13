@@ -168,57 +168,97 @@ html, body, #root {
 }
 
 /* =========================================================
-   CẤU TRÚC GỐC ĐÈN LED RGB BO VIỀN (MASK BORDER KHÔNG LỖI MÀU)
+   CẤU TRÚC ĐÈN LED RGB BO VIỀN (ĐÃ FIX CHUẨN ĐÚNG 2PX VIỀN)
    ========================================================= */
 
 .rgb-chase-box,
 .site-footer.always-rgb-footer {
   position: relative !important;
+  background: transparent !important; /* Không đặt màu nền ở phần tử gốc để tránh che ::after */
   border: none !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 16px rgba(0, 242, 254, 0.25) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 16px rgba(0, 242, 254, 0.3) !important;
   color: #ffffff !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
-  border-radius: 20px !important;
+  overflow: hidden !important;
   z-index: 1 !important;
+  padding: 2px !important;
+  border-radius: 20px !important;
+}
+
+/* Cho phép Player Dock mở rộng menu Speed mà không bị cắt viền */
+.player-dock.rgb-chase-box,
+.player-dock {
   overflow: visible !important;
-  background: var(--dock-bg, rgba(12, 18, 32, 0.85)) !important;
+}
+
+/* NỀN TRONG CHE PHẦN GIỮA (LƯU NỀN ĐỤC ĐỂ CHỐNG XUYÊN MÀU RGB VÀO NỘI DUNG) */
+.rgb-chase-box::before,
+.site-footer.always-rgb-footer::before {
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 2px !important;
+  border-radius: 18px !important;
+  background: #0c1220 !important;
   backdrop-filter: blur(28px) saturate(200%) !important;
   -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+  z-index: 1 !important;
 }
 
-.light .rgb-chase-box,
-.light .site-footer.always-rgb-footer {
-  background: rgba(245, 248, 252, 0.88) !important;
-  color: var(--text-main) !important;
+.light .rgb-chase-box::before {
+  background: #f1f5f9 !important;
 }
 
-.player-dock.rgb-chase-box {
-  border-radius: 24px !important;
+.dark .rgb-chase-box::before {
+  background: #0c1220 !important;
 }
 
-.search-bar.rgb-chase-box {
-  border-radius: 30px !important;
+/* NỀN TRONG CHO PLAYER DOCK */
+.player-dock.rgb-chase-box::before {
+  border-radius: 22px !important;
+}
+.dark .player-dock.rgb-chase-box::before {
+  background: #0c1220 !important;
+}
+.light .player-dock.rgb-chase-box::before {
+  background: #f8fafc !important;
 }
 
-.song-card.rgb-chase-box {
+/* NỀN TRONG FOOTER LUÔN LÀ DARK SLATE ĐỂ CHỮ NỔI BẬT */
+.site-footer.always-rgb-footer::before {
+  background: #0f172a !important;
   border-radius: 18px !important;
 }
 
-/* LỚP MẶT NẠ CHẠY VIỀN LED RGB 2PX */
+/* NỀN TRONG CHO BÀI HÁT ĐANG PHÁT (ACTIVE SONG CARD) */
+.song-card.rgb-chase-box::before {
+  border-radius: 16px !important;
+}
+.dark .song-card.rgb-chase-box::before {
+  background: #0f172a !important;
+}
+.light .song-card.rgb-chase-box::before {
+  background: #ffffff !important;
+}
+
+.rgb-chase-box > *,
+.site-footer.always-rgb-footer > * {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* DẢI ĐÈN CẦU VỒNG XOY LỚP DƯỚI */
 .rgb-chase-box::after,
 .site-footer.always-rgb-footer::after {
   content: '' !important;
   position: absolute !important;
-  inset: 0 !important;
-  border-radius: inherit !important;
-  padding: 2px !important;
+  z-index: 0 !important;
   pointer-events: none !important;
-  z-index: 10 !important;
   opacity: var(--led-opacity, 0.8) !important;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
-  -webkit-mask-composite: xor !important;
-  mask-composite: exclude !important;
-  will-change: background-position, opacity;
+  will-change: transform, opacity;
+}
+
+.player-dock.rgb-chase-box::after {
+  clip-path: inset(0 round 24px) !important;
 }
 
 /* 1. TRÁI SANG PHẢI (LTR) */
@@ -226,80 +266,121 @@ html, body, #root {
 .site-footer.always-rgb-footer.mode-ltr::after,
 .rgb-chase-box:not([class*="mode-"])::after,
 .site-footer.always-rgb-footer:not([class*="mode-"])::after {
-  background: linear-gradient(90deg, #ff007f 0%, #00f2fe 20%, #38ef7d 40%, #fffb00 60%, #9900ff 80%, #ff007f 100%) !important;
-  background-size: 300% 100% !important;
-  animation: rgbBorderLTR 4s linear infinite !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 200% !important;
+  height: 100% !important;
+  background: linear-gradient(
+    90deg,
+    #ff007f 0%, #00f2fe 10%, #38ef7d 20%, #fffb00 30%, #9900ff 40%,
+    #ff007f 50%, #00f2fe 60%, #38ef7d 70%, #fffb00 80%, #9900ff 90%, #ff007f 100%
+  ) !important;
+  animation: rgbLTR 4s linear infinite !important;
 }
 
 /* 2. PHẢI SANG TRÁI (RTL) */
 .rgb-chase-box.mode-rtl::after,
 .site-footer.always-rgb-footer.mode-rtl::after {
-  background: linear-gradient(270deg, #ff007f 0%, #9900ff 20%, #fffb00 40%, #38ef7d 60%, #00f2fe 80%, #ff007f 100%) !important;
-  background-size: 300% 100% !important;
-  animation: rgbBorderRTL 4s linear infinite !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 200% !important;
+  height: 100% !important;
+  background: linear-gradient(
+    90deg,
+    #ff007f 0%, #9900ff 10%, #fffb00 20%, #38ef7d 30%, #00f2fe 40%,
+    #ff007f 50%, #9900ff 60%, #fffb00 70%, #38ef7d 80%, #00f2fe 90%, #ff007f 100%
+  ) !important;
+  animation: rgbRTL 4s linear infinite !important;
 }
 
 /* 3. TRÊN XUỐNG DƯỚI (TTB) */
 .rgb-chase-box.mode-ttb::after,
 .site-footer.always-rgb-footer.mode-ttb::after {
-  background: linear-gradient(180deg, #ff007f 0%, #00f2fe 20%, #38ef7d 40%, #fffb00 60%, #9900ff 80%, #ff007f 100%) !important;
-  background-size: 100% 300% !important;
-  animation: rgbBorderTTB 4s linear infinite !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 200% !important;
+  background: linear-gradient(
+    180deg,
+    #ff007f 0%, #00f2fe 20%, #38ef7d 40%, #fffb00 60%, #9900ff 80%, #ff007f 100%
+  ) !important;
+  animation: rgbTTB 4s linear infinite !important;
 }
 
 /* 4. DƯỚI LÊN TRÊN (BTT) */
 .rgb-chase-box.mode-btt::after,
 .site-footer.always-rgb-footer.mode-btt::after {
-  background: linear-gradient(0deg, #ff007f 0%, #9900ff 20%, #fffb00 40%, #38ef7d 60%, #00f2fe 80%, #ff007f 100%) !important;
-  background-size: 100% 300% !important;
-  animation: rgbBorderBTT 4s linear infinite !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 200% !important;
+  background: linear-gradient(
+    180deg,
+    #ff007f 0%, #9900ff 20%, #fffb00 40%, #38ef7d 60%, #00f2fe 80%, #ff007f 100%
+  ) !important;
+  animation: rgbBTT 4s linear infinite !important;
 }
 
 /* 5. CHẠY CHÉO 45 DEGREE (DIAGONAL) */
 .rgb-chase-box.mode-diagonal::after,
 .site-footer.always-rgb-footer.mode-diagonal::after {
-  background: linear-gradient(135deg, #ff007f 0%, #00f2fe 20%, #38ef7d 40%, #fffb00 60%, #9900ff 80%, #ff007f 100%) !important;
-  background-size: 300% 300% !important;
-  animation: rgbBorderDiagonal 4s linear infinite !important;
+  top: -50% !important;
+  left: -50% !important;
+  width: 250% !important;
+  height: 250% !important;
+  background: linear-gradient(
+    135deg,
+    #ff007f 0%, #00f2fe 20%, #38ef7d 40%, #fffb00 60%, #9900ff 80%, #ff007f 100%
+  ) !important;
+  animation: rgbDiagonalSeamless 4s linear infinite !important;
 }
 
 /* 6. NHỊP THỞ PULSE */
 .rgb-chase-box.mode-pulse::after,
 .site-footer.always-rgb-footer.mode-pulse::after {
-  background: linear-gradient(45deg, #ff007f 0%, #00f2fe 25%, #38ef7d 50%, #fffb00 75%, #ff007f 100%) !important;
-  background-size: 200% 200% !important;
-  animation: rgbBorderPulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite alternate !important;
+  top: -50% !important;
+  left: -50% !important;
+  width: 200% !important;
+  height: 200% !important;
+  background: linear-gradient(
+    45deg,
+    #ff007f 0%, #00f2fe 25%, #38ef7d 50%, #fffb00 75%, #ff007f 100%
+  ) !important;
+  animation: rgbPulseBreath 3s cubic-bezier(0.4, 0, 0.6, 1) infinite alternate !important;
 }
 
-/* KEYFRAMES TỐI ƯU GPU */
-@keyframes rgbBorderLTR {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 300% 0%; }
+/* =========================================================
+   KEYFRAMES HOẠT HỌA GPU TỐI ƯU
+   ========================================================= */
+
+@keyframes rgbLTR {
+  0% { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
-@keyframes rgbBorderRTL {
-  0% { background-position: 300% 0%; }
-  100% { background-position: 0% 0%; }
+@keyframes rgbRTL {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
-@keyframes rgbBorderTTB {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 0% 300%; }
+@keyframes rgbTTB {
+  0% { transform: translate3d(0, -50%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
-@keyframes rgbBorderBTT {
-  0% { background-position: 0% 300%; }
-  100% { background-position: 0% 0%; }
+@keyframes rgbBTT {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(0, -50%, 0); }
 }
 
-@keyframes rgbBorderDiagonal {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 300% 300%; }
+@keyframes rgbDiagonalSeamless {
+  0% { transform: translate3d(-20%, -20%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
-@keyframes rgbBorderPulse {
-  0% { opacity: calc(var(--led-opacity, 0.8) * 0.3); background-position: 0% 0%; }
-  100% { opacity: var(--led-opacity, 0.8); background-position: 100% 100%; filter: drop-shadow(0 0 6px #00f2fe); }
+@keyframes rgbPulseBreath {
+  0% { opacity: calc(var(--led-opacity, 0.8) * 0.3); transform: scale(0.96); }
+  100% { opacity: var(--led-opacity, 0.8); transform: scale(1.02); filter: hue-rotate(180deg); }
 }
 
 .no-led-border {
@@ -307,7 +388,7 @@ html, body, #root {
 }
 
 /* =========================================================
-   THẺ BÀI HÁT
+   THẺ BÀI HÁT & MÀU CHỮ BÀI HÁT ĐANG PHÁT (ACTIVE)
    ========================================================= */
 
 .song-card {
@@ -385,10 +466,23 @@ html, body, #root {
   text-overflow: ellipsis;
 }
 
-.song-card.active .song-info h3,
-.song-card.active .song-info p {
+/* CHỮ CHO THẺ ACTIVE MÀU SÁNG & MÀU TỐI SẮC NÉT */
+.light .song-card.active .song-info h3 {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+.light .song-card.active .song-info p {
+  color: #475569 !important;
+  text-shadow: none !important;
+}
+
+.dark .song-card.active .song-info h3 {
   color: #ffffff !important;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+.dark .song-card.active .song-info p {
+  color: #cbd5e1 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 button {
@@ -605,6 +699,13 @@ button {
   transform: translateZ(0);
 }
 
+.player-dock.no-led-border {
+  background-color: var(--dock-bg) !important;
+  backdrop-filter: blur(28px) saturate(220%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(220%) !important;
+  color: var(--dock-text);
+}
+
 .player-left { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-start; }
 
 .album-art-wrapper img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
@@ -649,7 +750,7 @@ button {
 .speed-menu-container { position: relative; }
 .speed-toggle-btn { padding: 5px 10px; border-radius: 14px; border: 1px solid #00f2fe; background: rgba(0, 242, 254, 0.3); color: #ffffff; font-weight: bold; font-size: 10px; cursor: pointer; }
 
-/* DROPDOWN CHỌN TỐC ĐỘ SẮC NÉT */
+/* MENU SPEED DROPDOWN */
 .speed-dropdown-options {
   position: absolute !important;
   bottom: calc(100% + 12px) !important;
@@ -809,7 +910,7 @@ button {
 .fav-btn { background: transparent; border: none; font-size: 15px; cursor: pointer; padding: 2px; flex-shrink: 0; }
 .song-duration { font-size: 11px; color: inherit; opacity: 0.85; flex-shrink: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
 
-/* FOOTER GIỮ VIỀN RGB CHUẨN ĐẸP */
+/* FOOTER */
 .site-footer.always-rgb-footer {
   margin-top: 40px;
   padding: 22px 18px;
@@ -1349,7 +1450,7 @@ button {
 }
 
 /* =========================================================
-   BỘ RESPONSIVE MÀN HÌNH MÁY TÍNH & ĐIỆN THOẠI
+   BỘ RESPONSIVE ĐỒNG BỘ CĂN LỀ GIỮA FOOTER & PLAYER DOCK
    ========================================================= */
 
 @media screen and (max-width: 1024px) {
@@ -1410,6 +1511,10 @@ button {
     gap: 6px !important;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45) !important;
     box-sizing: border-box !important;
+  }
+
+  .player-dock.rgb-chase-box::after {
+    clip-path: inset(0 round 18px) !important;
   }
 
   .brand h1 {
