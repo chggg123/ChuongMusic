@@ -1,269 +1,194 @@
-import React from 'react';
-import { getHighResThumbnail, PRESET_BACKGROUNDS } from './constants';
+import React, { useEffect, useRef } from 'react';
+import { getHighResThumbnail, formatTime } from './constants';
 
-export const CustomMediaManager = ({
-  fileInputRef,
-  handleFileUpload,
-  activeBackground,
-  setActiveBackground,
-  customMediaList,
-  handleDeleteMedia
+export const PlayerDock = ({
+  currentSong,
+  isPlaying,
+  ledEnabled,
+  ledMode = 'ltr',
+  toggleFavorite,
+  isFav,
+  theme,
+  handlePrev,
+  togglePlayPause,
+  handleNext,
+  currentTime,
+  duration,
+  handleSeek,
+  backgroundPlay,
+  setBackgroundPlay,
+  autoPlay,
+  setAutoPlay,
+  showVideo,
+  setShowVideo,
+  playbackRate,
+  showSpeedMenu,
+  setShowSpeedMenu,
+  changeSpeed,
+  volume,
+  handleVolumeChange
 }) => {
-  return (
-    <div className="custom-media-manager glass-card">
-      <div className="media-manager-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h2>🎨 Quản Lý & Chọn Hình Nền</h2>
-          <p style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-sub)' }}>
-            Chọn mẫu nền có sẵn hoặc tải lên Ảnh / GIF / Video của riêng bạn làm nền chiếu full màn hình.
-          </p>
-        </div>
+  const canvasRef = useRef(null);
+  const speedMenuRef = useRef(null);
 
-        <div className="upload-controls">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileUpload}
-            accept="image/*,video/*,.gif"
-            multiple
-            style={{ display: 'none' }}
+  // Lắng nghe sự kiện click bên ngoài để đóng menu Speed
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (speedMenuRef.current && !speedMenuRef.current.contains(event.target)) {
+        setShowSpeedMenu(false);
+      }
+    };
+    if (showSpeedMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSpeedMenu, setShowSpeedMenu]);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const bars = window.innerWidth < 768 ? 12 : 22;
+
+    let animId;
+    let lastTime = 0;
+    const fpsInterval = 1000 / 30;
+
+    const render = (timestamp) => {
+      animId = requestAnimationFrame(render);
+      const elapsed = timestamp - lastTime;
+      if (elapsed < fpsInterval) return;
+      lastTime = timestamp - (elapsed % fpsInterval);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const barWidth = canvas.width / bars;
+
+      const rgbGradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+      rgbGradient.addColorStop(0, '#ff007f');
+      rgbGradient.addColorStop(0.33, '#00f2fe');
+      rgbGradient.addColorStop(0.66, '#38ef7d');
+      rgbGradient.addColorStop(1, '#ffb100');
+
+      for (let i = 0; i < bars; i++) {
+        const height = isPlaying ? Math.random() * (canvas.height - 4) + 4 : 3;
+        ctx.fillStyle = ledEnabled ? rgbGradient : (theme === 'dark' ? '#00f2fe' : '#ff0844');
+        ctx.fillRect(i * barWidth, canvas.height - height, barWidth - 2, height);
+      }
+    };
+
+    animId = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(animId);
+  }, [isPlaying, theme, ledEnabled]);
+
+  if (!currentSong) return null;
+
+  return (
+    <footer className={`player-dock ${ledEnabled ? `rgb-chase-box mode-${ledMode}` : 'no-led-border'}`}>
+      <div className="player-left">
+        <div className="album-art-wrapper">
+          <img
+            src={getHighResThumbnail(currentSong)}
+            alt={currentSong.title}
+            className={isPlaying ? 'spinning' : ''}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = currentSong.thumbnail || `https://img.youtube.com/vi/${currentSong.id}/mqdefault.jpg`;
+            }}
           />
-          <button className="import-btn glow-hover-btn" onClick={() => fileInputRef.current && fileInputRef.current.click()}>
-            ➕ Tải Nền Mới
-          </button>
-
-          {activeBackground && (
-            <button className="reset-bg-btn glow-hover-btn" onClick={() => setActiveBackground(null)}>
-              🔄 Mặc Định
-            </button>
-          )}
         </div>
-      </div>
-
-      {/* --- MỤC 1: BỘ NỀN MẪU HD CÓ SẴN (12 MẪU) --- */}
-      <div className="preset-section" style={{ marginTop: '10px' }}>
-        <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          ✨ Kho Nền Mẫu Đẹp Có Sẵn (1-Click)
-        </h3>
-        <div className="media-grid">
-          {PRESET_BACKGROUNDS.map((preset) => {
-            const isSelected = activeBackground?.id === preset.id;
-
-            return (
-              <div
-                key={preset.id}
-                className={`media-card glass-card ${isSelected ? 'active-bg-card' : ''}`}
-                onClick={() => setActiveBackground(preset)}
-                style={{
-                  border: isSelected ? '2px solid #00f2fe' : '1px solid var(--glass-border)',
-                  boxShadow: isSelected ? '0 0 16px rgba(0, 242, 254, 0.4)' : 'none'
-                }}
-              >
-                <div className="media-preview-box">
-                  <img src={preset.url} alt={preset.name} className="preview-thumb" />
-                  <span
-                    className="type-badge"
-                    style={{
-                      background: 'rgba(0, 242, 254, 0.85)',
-                      color: '#000000',
-                      fontWeight: '800'
-                    }}
-                  >
-                    PRESET
-                  </span>
-                </div>
-
-                <div className="media-card-footer" style={{ justifyContent: 'center' }}>
-                  <span className="media-name" style={{ fontWeight: '700' }}>{preset.name}</span>
-                </div>
-              </div>
-            );
-          })}
+        <div className="song-meta">
+          <h4>{currentSong.title}</h4>
+          <p>{currentSong.artist}</p>
         </div>
-      </div>
-
-      <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '16px 0' }} />
-
-      {/* --- MỤC 2: BÀI NỀN TẢI LÊN CỦA NGƯỜI DÙNG --- */}
-      <div className="user-custom-section">
-        <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '12px' }}>
-          📁 Nền Do Bạn Tải Lên ({customMediaList.length})
-        </h3>
-
-        <div className="media-grid">
-          {customMediaList.length === 0 ? (
-            <div className="empty-media-msg" style={{ gridColumn: '1 / -1', padding: '20px', textAlign: 'center', color: 'var(--text-sub)', fontSize: '13px' }}>
-              <p>Chưa có tệp nền cá nhân nào. Hãy bấm nút <strong>"➕ Tải Nền Mới"</strong> ở trên để thêm!</p>
-            </div>
-          ) : (
-            customMediaList.map((item) => {
-              const isSelected = activeBackground?.id === item.id;
-              return (
-                <div
-                  key={item.id}
-                  className={`media-card glass-card ${isSelected ? 'active-bg-card' : ''}`}
-                  onClick={() => setActiveBackground(item)}
-                  style={{
-                    border: isSelected ? '2px solid #ff007f' : '1px solid var(--glass-border)',
-                    boxShadow: isSelected ? '0 0 16px rgba(255, 0, 127, 0.4)' : 'none'
-                  }}
-                >
-                  <div className="media-preview-box">
-                    {item.type === 'video' ? (
-                      <video src={item.url} autoPlay loop muted playsInline className="preview-thumb" />
-                    ) : (
-                      <img src={item.url} alt={item.name} className="preview-thumb" />
-                    )}
-                    <span className="type-badge">{item.type.toUpperCase()}</span>
-                  </div>
-
-                  <div className="media-card-footer">
-                    <span className="media-name" title={item.name}>{item.name}</span>
-                    <button
-                      className="delete-media-btn glow-hover-btn"
-                      onClick={(e) => handleDeleteMedia(item.id, e)}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export const PlaylistManager = ({
-  newPlaylistName,
-  setNewPlaylistName,
-  createPlaylist,
-  playlists,
-  selectedPlaylistId,
-  setSelectedPlaylistId,
-  deletePlaylist,
-  playSong,
-  removeSongFromPlaylist,
-  handleShufflePlay
-}) => {
-  const selectedPl = playlists.find((p) => p.id === selectedPlaylistId);
-
-  return (
-    <div className="playlist-manager glass-card">
-      <div className="tab-title-bar">
-        <h2>🎵 Playlists</h2>
-      </div>
-
-      <div className="create-playlist-box">
-        <input
-          type="text"
-          placeholder="Nhập tên playlist mới..."
-          value={newPlaylistName}
-          onChange={(e) => setNewPlaylistName(e.target.value)}
-        />
-        <button className="import-btn glow-hover-btn" onClick={createPlaylist}>
-          ➕ Tạo
+        <button className="fav-dock-btn glow-hover-btn" onClick={() => toggleFavorite(currentSong)}>
+          {isFav(currentSong.id) ? '❤️' : '🤍'}
         </button>
       </div>
 
-      <div className="playlists-list-grid">
-        {playlists.map((pl) => (
-          <div
-            key={pl.id}
-            className={`playlist-card glass-card ${selectedPlaylistId === pl.id ? 'active-pl' : ''}`}
-            onClick={() => setSelectedPlaylistId(selectedPlaylistId === pl.id ? null : pl.id)}
-          >
-            <div className="pl-info">
-              <h3>🎧 {pl.name}</h3>
-              <p>{pl.songs.length} bài hát</p>
-            </div>
-            <div className="pl-actions">
-              <button
-                className="delete-pl-btn glow-hover-btn"
-                onClick={(e) => deletePlaylist(pl.id, e)}
-              >
-                🗑️
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      <div className="player-center">
+        <canvas ref={canvasRef} width={200} height={22} className="visualizer-canvas" />
 
-      {selectedPl && (
-        <div className="playlist-songs-section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
-            <h3>🎶 Các bài hát trong Playlist "{selectedPl.name}"</h3>
-            {selectedPl.songs.length > 0 && (
-              <button
-                className="import-btn glow-hover-btn"
-                onClick={() => handleShufflePlay(selectedPl.songs)}
-                style={{ padding: '6px 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-              >
-                🔀 Phát Ngẫu Nhiên
-              </button>
-            )}
-          </div>
-          <div className="songs-grid">
-            {selectedPl.songs.map((song, idx) => (
-              <div
-                key={song.id}
-                className="song-card glass-card float-3d-card"
-                onClick={() => playSong(idx, selectedPl.songs)}
-              >
-                <div className="thumb-container">
-                  <img src={getHighResThumbnail(song)} alt={song.title} />
-                  <div className="play-overlay">▶</div>
-                </div>
-                <div className="song-info">
-                  <h3>{song.title}</h3>
-                  <p>{song.artist}</p>
-                </div>
-                <button
-                  className="remove-song-pl-btn glow-hover-btn"
-                  onClick={(e) => removeSongFromPlaylist(selectedPlaylistId, song.id, e)}
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
+        <div className="controls-group">
+          <button className="ctrl-btn glow-hover-btn" onClick={handlePrev}>⏮</button>
+          <button className="ctrl-btn play-btn glow-hover-btn" onClick={togglePlayPause}>
+            {isPlaying ? '⏸' : '▶'}
+          </button>
+          <button className="ctrl-btn glow-hover-btn" onClick={handleNext}>⏭</button>
         </div>
-      )}
-    </div>
-  );
-};
 
-export const QueueManager = ({ songs, currentIndex, isPlaying, ledEnabled, playSong }) => {
-  return (
-    <div className="queue-manager glass-card">
-      <div className="tab-title-bar">
-        <h2>📑 Danh sách chờ ({songs.length} bài)</h2>
+        <div className="progress-container">
+          <span className="time-text">{formatTime(currentTime)}</span>
+          <input
+            type="range"
+            className="progress-bar"
+            min="0"
+            max={duration || 0}
+            step="1"
+            value={currentTime}
+            onChange={handleSeek}
+          />
+          <span className="time-text">{formatTime(duration)}</span>
+        </div>
       </div>
 
-      <div className="songs-grid">
-        {songs.map((song, index) => {
-          const isCurrent = currentIndex === index;
-          return (
-            <div
-              key={song.id}
-              className={`song-card glass-card float-3d-card ${isCurrent ? 'active playing-rgb ' + (ledEnabled ? 'rgb-chase-box' : 'no-led-border') : ''}`}
-              onClick={() => playSong(index)}
-            >
-              <div className="thumb-container">
-                <img src={getHighResThumbnail(song)} alt={song.title} />
-                <div className="play-overlay">{isCurrent && isPlaying ? '⏸' : '▶'}</div>
+      <div className="player-right">
+        <button
+          className={`bgplay-toggle-btn glow-hover-btn ${backgroundPlay ? 'active' : ''}`}
+          onClick={() => setBackgroundPlay(!backgroundPlay)}
+        >
+          {backgroundPlay ? '🎧 Nền: BẬT' : '🔇 Nền: TẮT'}
+        </button>
+
+        <button
+          className={`autoplay-toggle-btn glow-hover-btn ${autoPlay ? 'active' : ''}`}
+          onClick={() => setAutoPlay(!autoPlay)}
+        >
+          {autoPlay ? '🔄 Auto: BẬT' : '⏸️ Auto: TẮT'}
+        </button>
+
+        <button
+          className={`video-toggle-btn glow-hover-btn ${showVideo ? 'active' : ''}`}
+          onClick={() => setShowVideo(!showVideo)}
+        >
+          {showVideo ? '🎵 Tắt Video' : '📹 Bật Video'}
+        </button>
+
+        <div className="speed-menu-container" ref={speedMenuRef}>
+          <button className="speed-toggle-btn glow-hover-btn" onClick={() => setShowSpeedMenu(!showSpeedMenu)}>
+            ⚡ {playbackRate === 1 ? '1x' : `${playbackRate}x`}
+          </button>
+
+          {showSpeedMenu && (
+            <div className="speed-dropdown-options speed-liquid-glass">
+              <div className="speed-quick-presets horizontal">
+                {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
+                  <button
+                    key={rate}
+                    className={`speed-preset-btn ${playbackRate === rate ? 'active' : ''}`}
+                    onClick={() => {
+                      changeSpeed(rate);
+                      setShowSpeedMenu(false);
+                    }}
+                  >
+                    {rate === 1 ? '1x' : `${rate}x`}
+                  </button>
+                ))}
               </div>
-              <div className="song-info">
-                <h3>{index + 1}. {song.title}</h3>
-                <p>{song.artist}</p>
-              </div>
-              <span className="song-duration">{song.duration}</span>
             </div>
-          );
-        })}
+          )}
+        </div>
+
+        <input
+          type="range"
+          className="volume-bar"
+          min="0"
+          max="100"
+          value={volume}
+          onChange={handleVolumeChange}
+        />
       </div>
-    </div>
+    </footer>
   );
 };
