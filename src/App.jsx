@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import './App.css';
 import './responsive.css';
-import { API_BASE, HOT_TIKTOK_KEYWORDS, extractYouTubeId } from './constants';
+import { API_BASE, HOT_TIKTOK_KEYWORDS, extractYouTubeId, formatTime } from './constants';
 import { Background } from './Background';
 import { HeaderNav } from './HeaderNav';
 import { SidebarMenu } from './SidebarMenu';
@@ -10,6 +10,11 @@ import { PlayerDock } from './PlayerDock';
 import { CustomMediaManager, PlaylistManager, QueueManager } from './Managers';
 import { AudioManager } from './AudioManager';
 import { useAudioDSP } from './useAudioDSP';
+
+// KIỂM TRA ĐƯỜNG DẪN TIKTOK
+const isTikTokUrl = (url) => {
+  return /(tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com)/i.test(url);
+};
 
 // QUẢN LÝ BỘ NHỚ INDEXEDDB LƯU FILE DUNG LƯỢNG LỚN
 const DB_NAME = 'ChuongMusicDB';
@@ -118,7 +123,7 @@ function App() {
           nativeAudioRef.current.pause();
         }
         if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
-          try { playerRef.current.pauseVideo(); } catch (e) {}
+          try { playerRef.current.pauseVideo(); } catch (e) { }
         }
         setIsPlaying(false);
       }
@@ -175,6 +180,7 @@ function App() {
   const fileInputRef = useRef(null);
   const playerRef = useRef(null);
   const nativeAudioRef = useRef(null);
+  const tiktokVideoRef = useRef(null);
   const timerRef = useRef(null);
 
   const currentSong = currentIndex >= 0 ? songs[currentIndex] : null;
@@ -255,10 +261,54 @@ function App() {
     }
   };
 
+  // PHÁT BÀI HÁT TỪ LINK YOUTUBE HOẶC TIKTOK TRỰC TIẾP
   const handlePlayFromLink = async (url) => {
     if (!url || !url.trim()) return;
-    const ytId = extractYouTubeId(url);
+    const cleanUrl = url.trim();
 
+    // 1. DÙNG TIKWM API ĐỂ LẤY FILE VIDEO TIKTOK TRỰC TIẾP
+    if (isTikTokUrl(cleanUrl)) {
+      setLoading(true);
+      setLoadingText('⏳ Đang tải video TikTok...');
+
+      try {
+        const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(cleanUrl)}`);
+        const json = await res.json();
+
+        if (json.code === 0 && json.data) {
+          const data = json.data;
+          const songId = `tiktok_${data.id}`;
+          const newSong = {
+            id: songId,
+            type: 'tiktok',
+            tiktokVideoId: data.id,
+            videoUrl: data.play, // Link video MP4 phát trực tiếp
+            musicUrl: data.music,
+            title: data.title || 'Video TikTok',
+            artist: data.author?.nickname ? `@${data.author.nickname}` : 'TikTok Creator',
+            thumbnail: data.cover || 'https://sf16-sg.tiktokcdn.com/obj/eden-sg/u3kwyb_l_zlp/ljhwZfsne22q_wq_u3kwyb/tiktok_icon.png',
+            duration: formatTime(data.duration || 0)
+          };
+
+          setSongs((prev) => [newSong, ...prev.filter((s) => s.id !== songId)]);
+          setCurrentIndex(0);
+          setIsPlaying(true);
+          setShowVideo(true);
+          setActiveTab('home');
+        } else {
+          alert('Không thể lấy video từ link TikTok này. Bạn hãy kiểm tra lại link nhé!');
+        }
+      } catch (err) {
+        console.error('Lỗi TikWM API:', err);
+        alert('Lỗi kết nối khi tải video TikTok!');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // 2. XỬ LÝ LINK YOUTUBE
+    const ytId = extractYouTubeId(cleanUrl);
     if (ytId) {
       let songTitle = 'Bài hát từ YouTube Link';
       let artistName = 'YouTube';
@@ -270,10 +320,11 @@ function App() {
           songTitle = data.title;
           artistName = data.author_name || 'YouTube Source';
         }
-      } catch (err) {}
+      } catch (err) { }
 
       const newSong = {
         id: ytId,
+        type: 'youtube',
         title: songTitle,
         artist: artistName,
         thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
@@ -285,9 +336,10 @@ function App() {
       setIsPlaying(true);
       setShowVideo(true);
       setActiveTab('home');
-    } else {
-      alert('Vui lòng dán link YouTube hợp lệ!');
+      return;
     }
+
+    alert('Vui lòng dán link YouTube hoặc TikTok hợp lệ!');
   };
 
   useEffect(() => {
@@ -439,10 +491,29 @@ function App() {
     };
   }, [query]);
 
+  // ĐỔI BÀI HÁT VÀ PHÁT MEDIA
   useEffect(() => {
     if (!currentSong || !currentSong.id) return;
     setVideoError(false);
 
+    // TRƯỜNG HỢP NHẠC TIKTOK
+    if (currentSong.type === 'tiktok') {
+      if (nativeAudioRef.current) {
+        nativeAudioRef.current.pause();
+        nativeAudioRef.current.src = '';
+      }
+      if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
+        try { playerRef.current.pauseVideo(); } catch (e) { }
+      }
+      setShowVideo(true);
+      setIsPlaying(true);
+      if (tiktokVideoRef.current) {
+        tiktokVideoRef.current.play().catch(() => { });
+      }
+      return;
+    }
+
+    // TRƯỜNG HỢP NHẠC YOUTUBE
     if (nativeAudioRef.current) {
       nativeAudioRef.current.src = `${API_BASE}/stream?id=${currentSong.id}`;
       nativeAudioRef.current.playbackRate = playbackRate;
@@ -505,7 +576,12 @@ function App() {
   useEffect(() => {
     if (isPlaying) {
       timerRef.current = setInterval(() => {
-        if (nativeAudioRef.current && nativeAudioRef.current.duration) {
+        if (currentSong?.type === 'tiktok' && tiktokVideoRef.current) {
+          const cur = tiktokVideoRef.current.currentTime || 0;
+          const dur = tiktokVideoRef.current.duration || 0;
+          setCurrentTime(cur);
+          setDuration(dur);
+        } else if (nativeAudioRef.current && nativeAudioRef.current.duration) {
           const cur = nativeAudioRef.current.currentTime || 0;
           const dur = nativeAudioRef.current.duration || 0;
           setCurrentTime(cur);
@@ -530,7 +606,7 @@ function App() {
       clearInterval(timerRef.current);
     }
     return () => clearInterval(timerRef.current);
-  }, [isPlaying, showRecommendPopup, dismissedRecommend, songs]);
+  }, [isPlaying, showRecommendPopup, dismissedRecommend, songs, currentSong]);
 
   const handleAutoNext = () => {
     if (!autoPlay || songs.length === 0) return;
@@ -548,7 +624,7 @@ function App() {
     const term = searchKeyword || query;
     if (!term || !term.trim()) return;
 
-    if (extractYouTubeId(term)) {
+    if (extractYouTubeId(term) || isTikTokUrl(term)) {
       handlePlayFromLink(term);
       setQuery('');
       return;
@@ -621,16 +697,26 @@ function App() {
     playSong(Math.floor(Math.random() * songList.length), songList);
   };
 
-  // FIX LỖI NÚT DỪNG / PHÁT NHẠC
   const togglePlayPause = () => {
     audioDSP.resumeAudioContext();
+
+    if (currentSong?.type === 'tiktok' && tiktokVideoRef.current) {
+      if (isPlaying) {
+        tiktokVideoRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        tiktokVideoRef.current.play();
+        setIsPlaying(true);
+      }
+      return;
+    }
 
     if (isPlaying) {
       if (nativeAudioRef.current) {
         nativeAudioRef.current.pause();
       }
       if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
-        try { playerRef.current.pauseVideo(); } catch (e) {}
+        try { playerRef.current.pauseVideo(); } catch (e) { }
       }
       setIsPlaying(false);
     } else {
@@ -641,7 +727,7 @@ function App() {
           setIsPlaying(true);
         }).catch(() => {
           if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
-            try { playerRef.current.playVideo(); } catch (e) {}
+            try { playerRef.current.playVideo(); } catch (e) { }
             setIsPlaying(true);
           }
         });
@@ -649,7 +735,9 @@ function App() {
       }
 
       if (!hasPlayed && playerRef.current && typeof playerRef.current.playVideo === 'function') {
-        try { playerRef.current.playVideo(); } catch (e) {}
+        try { playerRef.current.playVideo(); } catch (e) { }
+        setIsPlaying(true);
+      } else {
         setIsPlaying(true);
       }
     }
@@ -668,13 +756,20 @@ function App() {
   const handleSeek = (e) => {
     const time = parseFloat(e.target.value);
     setCurrentTime(time);
-    if (nativeAudioRef.current) nativeAudioRef.current.currentTime = time;
-    if (playerRef.current && playerRef.current.seekTo) playerRef.current.seekTo(time, true);
+    if (currentSong?.type === 'tiktok' && tiktokVideoRef.current) {
+      tiktokVideoRef.current.currentTime = time;
+    } else {
+      if (nativeAudioRef.current) nativeAudioRef.current.currentTime = time;
+      if (playerRef.current && playerRef.current.seekTo) playerRef.current.seekTo(time, true);
+    }
   };
 
   const handleVolumeChange = (e) => {
     const val = parseInt(e.target.value, 10);
     setVolume(val);
+    if (currentSong?.type === 'tiktok' && tiktokVideoRef.current) {
+      tiktokVideoRef.current.volume = val / 100;
+    }
     if (nativeAudioRef.current) nativeAudioRef.current.volume = val / 100;
     if (playerRef.current && playerRef.current.setVolume) playerRef.current.setVolume(val);
   };
@@ -684,13 +779,16 @@ function App() {
     setPlaybackRate(numericRate);
     setShowSpeedMenu(false);
 
+    if (currentSong?.type === 'tiktok' && tiktokVideoRef.current) {
+      tiktokVideoRef.current.playbackRate = numericRate;
+    }
     if (nativeAudioRef.current) {
       nativeAudioRef.current.playbackRate = numericRate;
     }
     if (playerRef.current && typeof playerRef.current.setPlaybackRate === 'function') {
       try {
         playerRef.current.setPlaybackRate(numericRate);
-      } catch (e) {}
+      } catch (e) { }
     }
   };
 
@@ -764,7 +862,20 @@ function App() {
       <main className="main-content">
         <div className={`video-container-wrapper ${showVideo ? 'visible' : 'hidden'}`}>
           <div className={`video-glass-box glass-card ${ledEnabled ? `rgb-chase-box mode-${ledMode}` : 'no-led-border'}`}>
-            {videoError && currentSong ? (
+            {currentSong?.type === 'tiktok' ? (
+              <video
+                ref={tiktokVideoRef}
+                key={currentSong.id}
+                src={currentSong.videoUrl}
+                controls
+                autoPlay
+                playsInline
+                onEnded={handleAutoNext}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '14px' }}
+              />
+            ) : videoError && currentSong ? (
               <iframe
                 title="YouTube Fallback"
                 src={`https://www.youtube-nocookie.com/embed/${currentSong.id}?autoplay=1&enablejsapi=1`}
