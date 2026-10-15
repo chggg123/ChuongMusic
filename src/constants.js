@@ -2,18 +2,20 @@ export const API_BASE = 'https://chuongmusic-sever.onrender.com/api';
 export const SPEED_RATES = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
 export const HOT_TIKTOK_KEYWORDS = [
-  'nhạc tình yêu dễ thương',
-  'nhạc cafe buổi sáng',
-  'nhạc lofi nhẹ nhàng',
+  'nhạc hot tiktok 2026',
   'nhạc chill tiktok',
+  'nhạc tiktok trend',
+  'nhạc remix tiktok hot',
+  'vpop hot tiktok',
   'nhạc lofi tiktok chill',
+  'nhạc edm tiktok gây nghiện',
   'nhạc tâm trạng tiktok',
+  'nhạc tiktok buồn',
   'nhạc lofi cực chill',
+  'nhạc tiktok remix',
   'nhạc tiktok mới nhất',
   'nhạc hot trend hiện nay',
-  'nhạc trung dễ thương',
-  'nhạc trung cực chill',
-  'nhạc học bài'
+  'nhạc tình yêu vui tươi'
 ];
 
 // BỘ 12 MẪU NỀN ẢNH HD SẮC NÉT - ĐÃ FIX LINK SAKURA ANIME CHILL
