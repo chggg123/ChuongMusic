@@ -11,6 +11,18 @@ import { CustomMediaManager, PlaylistManager, QueueManager } from './Managers';
 import { AudioManager } from './AudioManager';
 import { useAudioDSP } from './useAudioDSP';
 
+// HÀM ĐỌC LOCALSTORAGE AN TOÀN TUYỆT ĐỐI CHỐNG SẬP APP
+const getSafeStorage = (key, fallback) => {
+  try {
+    const item = localStorage.getItem(key);
+    if (!item) return fallback;
+    return JSON.parse(item);
+  } catch (e) {
+    console.warn(`Lỗi đọc localStorage key "${key}":`, e);
+    return fallback;
+  }
+};
+
 // KIỂM TRA ĐƯỜNG DẪN TIKTOK
 const isTikTokUrl = (url) => {
   return /(tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com)/i.test(url);
@@ -22,41 +34,53 @@ const STORE_NAME = 'custom_media';
 
 const initDB = () => {
   return new Promise((resolve) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = (e) => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-      }
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => resolve(null);
+    try {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(null);
+    } catch (e) {
+      resolve(null);
+    }
   });
 };
 
 const saveMediaDB = async (item) => {
   const db = await initDB();
   if (!db) return;
-  const tx = db.transaction(STORE_NAME, 'readwrite');
-  tx.objectStore(STORE_NAME).put(item);
+  try {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).put(item);
+  } catch (e) {}
 };
 
 const getAllMediaDB = async () => {
   const db = await initDB();
   if (!db) return [];
   return new Promise((resolve) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const req = tx.objectStore(STORE_NAME).getAll();
-    req.onsuccess = () => resolve(req.result || []);
-    req.onerror = () => resolve([]);
+    try {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const req = tx.objectStore(STORE_NAME).getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => resolve([]);
+    } catch (e) {
+      resolve([]);
+    }
   });
 };
 
 const deleteMediaDB = async (id) => {
   const db = await initDB();
   if (!db) return;
-  const tx = db.transaction(STORE_NAME, 'readwrite');
-  tx.objectStore(STORE_NAME).delete(id);
+  try {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).delete(id);
+  } catch (e) {}
 };
 
 function App() {
@@ -107,8 +131,7 @@ function App() {
   }, [ledBrightness]);
 
   const [backgroundPlay, setBackgroundPlay] = useState(() => {
-    const saved = localStorage.getItem('liquid_bgplay');
-    return saved !== null ? JSON.parse(saved) : true;
+    return getSafeStorage('liquid_bgplay', true);
   });
 
   useEffect(() => {
@@ -137,30 +160,26 @@ function App() {
   const [activeTab, setActiveTab] = useState('home');
 
   const [searchHistory, setSearchHistory] = useState(() => {
-    const saved = localStorage.getItem('liquid_search_history');
-    return saved ? JSON.parse(saved) : [];
+    return getSafeStorage('liquid_search_history', []);
   });
 
   const [favorites, setFavorites] = useState(() => {
-    const saved = localStorage.getItem('liquid_favs');
-    return saved ? JSON.parse(saved) : [];
+    return getSafeStorage('liquid_favs', []);
   });
 
   const [playlists, setPlaylists] = useState(() => {
-    const saved = localStorage.getItem('liquid_playlists');
-    return saved ? JSON.parse(saved) : [{ id: 'p1', name: 'Nhạc Chill Đêm Khuya', songs: [] }];
+    return getSafeStorage('liquid_playlists', [{ id: 'p1', name: 'Nhạc Chill Đêm Khuya', songs: [] }]);
   });
+
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
 
   const [autoPlay, setAutoPlay] = useState(() => {
-    const saved = localStorage.getItem('liquid_autoplay');
-    return saved !== null ? JSON.parse(saved) : true;
+    return getSafeStorage('liquid_autoplay', true);
   });
 
   const [playHistory, setPlayHistory] = useState(() => {
-    const saved = localStorage.getItem('liquid_history');
-    return saved ? JSON.parse(saved) : [];
+    return getSafeStorage('liquid_history', []);
   });
 
   const [showRecommendPopup, setShowRecommendPopup] = useState(false);
@@ -173,8 +192,7 @@ function App() {
   const [customMediaList, setCustomMediaList] = useState([]);
 
   const [activeBackground, setActiveBackground] = useState(() => {
-    const saved = localStorage.getItem('liquid_active_bg');
-    return saved ? JSON.parse(saved) : null;
+    return getSafeStorage('liquid_active_bg', null);
   });
 
   const fileInputRef = useRef(null);
@@ -183,16 +201,18 @@ function App() {
   const tiktokVideoRef = useRef(null);
   const timerRef = useRef(null);
 
-  const currentSong = currentIndex >= 0 ? songs[currentIndex] : null;
+  const currentSong = currentIndex >= 0 && currentIndex < songs.length ? songs[currentIndex] : null;
 
   useEffect(() => {
     localStorage.removeItem('liquid_custom_media');
     getAllMediaDB().then((items) => {
-      const listWithUrls = items.map((item) => ({
-        ...item,
-        url: item.file ? URL.createObjectURL(item.file) : item.url
-      }));
-      setCustomMediaList(listWithUrls);
+      if (Array.isArray(items)) {
+        const listWithUrls = items.map((item) => ({
+          ...item,
+          url: item.file ? URL.createObjectURL(item.file) : item.url
+        }));
+        setCustomMediaList(listWithUrls);
+      }
     });
   }, []);
 
@@ -248,7 +268,7 @@ function App() {
   const handleResetUserData = () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa toàn bộ dữ liệu ứng dụng không?')) {
       localStorage.clear();
-      indexedDB.deleteDatabase(DB_NAME);
+      try { indexedDB.deleteDatabase(DB_NAME); } catch (e) {}
       setPlayHistory([]);
       setFavorites([]);
       setSearchHistory([]);
@@ -261,20 +281,19 @@ function App() {
     }
   };
 
-  // PHÁT BÀI HÁT TỪ LINK YOUTUBE HOẶC TIKTOK TRỰC TIẾP (AN TOÀN AN TOÀN TUYỆT ĐỐI)
+  // PHÁT BÀI HÁT TỪ LINK YOUTUBE HOẶC TIKTOK TRỰC TIẾP
   const handlePlayFromLink = async (url) => {
     if (!url || !url.trim()) return;
     const cleanUrl = url.trim();
 
     try {
-      // 1. DÙNG TIKWM API ĐỂ LẤY FILE VIDEO TIKTOK TRỰC TIẾP
       if (isTikTokUrl(cleanUrl)) {
         setLoading(true);
         setLoadingText('⏳ Đang tải video TikTok...');
 
         try {
           const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(cleanUrl)}`);
-          if (!res.ok) throw new Error("Lỗi mạng khi tải TikTok");
+          if (!res.ok) throw new Error("Lỗi kết nối TikWM");
           const json = await res.json();
 
           if (json.code === 0 && json.data) {
@@ -284,7 +303,7 @@ function App() {
               id: songId,
               type: 'tiktok',
               tiktokVideoId: data.id,
-              videoUrl: data.play || '', // Link video MP4 phát trực tiếp
+              videoUrl: data.play || '',
               musicUrl: data.music || '',
               title: data.title || 'Video TikTok',
               artist: data.author?.nickname ? `@${data.author.nickname}` : 'TikTok Creator',
@@ -292,7 +311,7 @@ function App() {
               duration: formatTime(data.duration || 0)
             };
 
-            setSongs((prev) => [newSong, ...prev.filter((s) => s.id !== songId)]);
+            setSongs((prev) => [newSong, ...prev.filter((s) => s && s.id !== songId)]);
             setCurrentIndex(0);
             setIsPlaying(true);
             setShowVideo(true);
@@ -302,14 +321,13 @@ function App() {
           }
         } catch (err) {
           console.error('Lỗi TikWM API:', err);
-          alert('Lỗi kết nối khi tải video TikTok! Vui lòng thử lại sau.');
+          alert('Lỗi kết nối khi tải video TikTok!');
         } finally {
           setLoading(false);
         }
         return;
       }
 
-      // 2. XỬ LÝ LINK YOUTUBE
       const ytId = extractYouTubeId(cleanUrl);
       if (ytId) {
         let songTitle = 'Bài hát từ YouTube Link';
@@ -324,9 +342,7 @@ function App() {
               artistName = data.author_name || 'YouTube Source';
             }
           }
-        } catch (err) {
-          console.warn("Lỗi fetch YouTube oEmbed:", err);
-        }
+        } catch (err) {}
 
         const newSong = {
           id: ytId,
@@ -337,7 +353,7 @@ function App() {
           duration: '--:--'
         };
 
-        setSongs((prev) => [newSong, ...prev.filter((s) => s.id !== ytId)]);
+        setSongs((prev) => [newSong, ...prev.filter((s) => s && s.id !== ytId)]);
         setCurrentIndex(0);
         setIsPlaying(true);
         setShowVideo(true);
@@ -348,7 +364,7 @@ function App() {
       alert('Vui lòng dán link YouTube hoặc TikTok hợp lệ!');
     } catch (globalErr) {
       console.error("Lỗi xử lý link:", globalErr);
-      alert("Đã xảy ra lỗi khi xử lý link. Vui lòng kiểm tra lại!");
+      alert("Đã xảy ra lỗi khi xử lý link!");
     }
   };
 
@@ -429,18 +445,19 @@ function App() {
 
   const toggleFavorite = (song, e) => {
     if (e) e.stopPropagation();
+    if (!song || !song.id) return;
     setFavorites((prev) => {
-      const exists = prev.some((f) => f.id === song.id);
-      return exists ? prev.filter((f) => f.id !== song.id) : [...prev, song];
+      const exists = prev.some((f) => f && f.id === song.id);
+      return exists ? prev.filter((f) => f && f.id !== song.id) : [...prev, song];
     });
   };
 
-  const isFav = (songId) => favorites.some((f) => f.id === songId);
+  const isFav = (songId) => favorites.some((f) => f && f.id === songId);
 
   const getSmartRecommendation = () => {
     if (!songs || songs.length === 0) return null;
     if (songs.length === 1) return songs[0];
-    const candidateSongs = songs.filter((_, idx) => idx !== currentIndex);
+    const candidateSongs = songs.filter((s, idx) => s && idx !== currentIndex);
     return candidateSongs[0] || songs[(currentIndex + 1) % songs.length];
   };
 
@@ -449,7 +466,7 @@ function App() {
       setDismissedRecommend(false);
       setShowRecommendPopup(false);
       setPlayHistory((prev) => {
-        const updated = [currentSong, ...prev.filter((s) => s.id !== currentSong.id)].slice(0, 40);
+        const updated = [currentSong, ...prev.filter((s) => s && s.id !== currentSong.id)].slice(0, 40);
         localStorage.setItem('liquid_history', JSON.stringify(updated));
         return updated;
       });
@@ -503,12 +520,11 @@ function App() {
     };
   }, [query]);
 
-  // ĐỔI BÀI HÁT VÀ PHÁT MEDIA (AN TOÀN BẢO VỆ)
+  // ĐỔI BÀI HÁT VÀ PHÁT MEDIA
   useEffect(() => {
     if (!currentSong || !currentSong.id) return;
     setVideoError(false);
 
-    // TRƯỜNG HỢP NHẠC TIKTOK
     if (currentSong.type === 'tiktok') {
       if (nativeAudioRef.current) {
         nativeAudioRef.current.pause();
@@ -525,7 +541,6 @@ function App() {
       return;
     }
 
-    // TRƯỜNG HỢP NHẠC YOUTUBE
     if (nativeAudioRef.current) {
       nativeAudioRef.current.src = `${API_BASE}/stream?id=${currentSong.id}`;
       nativeAudioRef.current.playbackRate = playbackRate;
@@ -620,7 +635,7 @@ function App() {
             setCurrentTime(cur);
             setDuration(dur);
           }
-        } catch (err) {}
+        } catch (e) {}
       }, 500);
     } else {
       clearInterval(timerRef.current);
@@ -631,7 +646,7 @@ function App() {
   const handleAutoNext = () => {
     if (!autoPlay || songs.length === 0) return;
     if (nextSongToPlay) {
-      const targetIdx = songs.findIndex((s) => s.id === nextSongToPlay.id);
+      const targetIdx = songs.findIndex((s) => s && s.id === nextSongToPlay.id);
       if (targetIdx !== -1) {
         playSong(targetIdx);
         return;
@@ -665,9 +680,10 @@ function App() {
     setActiveTab('home');
 
     const updateSongListAndActiveIndex = (newList) => {
-      setSongs(newList);
+      const validList = Array.isArray(newList) ? newList.filter(Boolean) : [];
+      setSongs(validList);
       if (currentSong) {
-        const foundIndex = newList.findIndex((s) => s && s.id === currentSong.id);
+        const foundIndex = validList.findIndex((s) => s && s.id === currentSong.id);
         setCurrentIndex(foundIndex);
       } else {
         setCurrentIndex(-1);
@@ -781,7 +797,7 @@ function App() {
     } else {
       if (nativeAudioRef.current) nativeAudioRef.current.currentTime = time;
       if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
-        try { playerRef.current.seekTo(time, true); } catch (err) {}
+        try { playerRef.current.seekTo(time, true); } catch (e) {}
       }
     }
   };
@@ -794,7 +810,7 @@ function App() {
     }
     if (nativeAudioRef.current) nativeAudioRef.current.volume = val / 100;
     if (playerRef.current && typeof playerRef.current.setVolume === 'function') {
-      try { playerRef.current.setVolume(val); } catch (err) {}
+      try { playerRef.current.setVolume(val); } catch (e) {}
     }
   };
 
@@ -990,7 +1006,7 @@ function App() {
             </div>
 
             <div className="songs-grid">
-              {displayedSongs.map((song, index) => (
+              {displayedSongs.filter(Boolean).map((song, index) => (
                 <SongCard
                   key={song.id || index}
                   song={song}
