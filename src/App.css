@@ -2210,3 +2210,79 @@ button {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+/* =========================================================
+   FIX LỖI ẢNH XÁM TIKTOK: BIẾN THÀNH ĐĨA THAN VINYL CAO CẤP
+   ========================================================= */
+
+/* 1. Tạo hình đĩa than Vinyl làm nền chính với đường vân xoáy */
+.album-art-wrapper {
+  position: relative !important;
+  width: 48px !important;
+  height: 48px !important;
+  flex-shrink: 0 !important;
+  border-radius: 50% !important;
+  /* Vân đĩa than dập nổi */
+  background: repeating-radial-gradient(
+    circle at center,
+    #181818 0px,
+    #181818 2px,
+    #282828 3px,
+    #282828 4px
+  ) !important;
+  border: 2px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 0 8px rgba(0, 242, 254, 0.4) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+/* 2. Nhãn đĩa màu Neon ở giữa + nốt nhạc 🎵 */
+.album-art-wrapper::after {
+  content: '🎵' !important;
+  position: absolute !important;
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #ff007f, #00f2fe) !important;
+  z-index: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 10px !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 3. Lỗ tròn chính giữa tâm đĩa */
+.album-art-wrapper::before {
+  content: '' !important;
+  position: absolute !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background: #ffffff !important;
+  z-index: 3 !important;
+  box-shadow: 0 0 4px #000000 !important;
+}
+.album-art-wrapper img {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  position: relative !important;
+  z-index: 2 !important;
+  /* Giúp ẩn hoàn toàn icon khung xám khi TikTok bị lỗi ảnh */
+  color: transparent !important;
+  text-indent: -9999px !important;
+  font-size: 0 !important;
+}
+.album-art-wrapper.spinning,
+.album-art-wrapper img.spinning {
+  animation: spinGpu 10s linear infinite !important;
+}
+
+@keyframes spinGpu {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
