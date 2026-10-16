@@ -90,7 +90,7 @@ export const PlayerDock = ({
         <div className="album-art-wrapper">
           <img
             src={getHighResThumbnail(currentSong)}
-            alt={currentSong.title}
+            alt={currentSong.title || 'Bài hát'}
             className={isPlaying ? 'spinning' : ''}
             onError={(e) => {
               e.target.onerror = null;
@@ -99,8 +99,8 @@ export const PlayerDock = ({
           />
         </div>
         <div className="song-meta">
-          <h4>{currentSong.title}</h4>
-          <p>{currentSong.artist}</p>
+          <h4>{currentSong.title || 'Chưa rõ tiêu đề'}</h4>
+          <p>{currentSong.artist || 'Nghệ sĩ'}</p>
         </div>
         <button className="fav-dock-btn glow-hover-btn" onClick={() => toggleFavorite(currentSong)}>
           {isFav(currentSong.id) ? '❤️' : '🤍'}
