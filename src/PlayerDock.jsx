@@ -31,6 +31,7 @@ export const PlayerDock = ({
   const canvasRef = useRef(null);
   const speedMenuRef = useRef(null);
 
+  // Lắng nghe sự kiện click bên ngoài để đóng menu Speed
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (speedMenuRef.current && !speedMenuRef.current.contains(event.target)) {
@@ -49,7 +50,6 @@ export const PlayerDock = ({
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
     const bars = window.innerWidth < 768 ? 12 : 22;
 
     let animId;
@@ -82,7 +82,7 @@ export const PlayerDock = ({
     return () => cancelAnimationFrame(animId);
   }, [isPlaying, theme, ledEnabled]);
 
-  if (!currentSong || !currentSong.id) return null;
+  if (!currentSong) return null;
 
   return (
     <footer className={`player-dock ${ledEnabled ? `rgb-chase-box mode-${ledMode}` : 'no-led-border'}`}>
@@ -90,7 +90,7 @@ export const PlayerDock = ({
         <div className="album-art-wrapper">
           <img
             src={getHighResThumbnail(currentSong)}
-            alt={currentSong.title || 'Bài hát'}
+            alt={currentSong.title}
             className={isPlaying ? 'spinning' : ''}
             onError={(e) => {
               e.target.onerror = null;
@@ -99,11 +99,11 @@ export const PlayerDock = ({
           />
         </div>
         <div className="song-meta">
-          <h4>{currentSong.title || 'Chưa rõ tiêu đề'}</h4>
-          <p>{currentSong.artist || 'Nghệ sĩ'}</p>
+          <h4>{currentSong.title}</h4>
+          <p>{currentSong.artist}</p>
         </div>
-        <button className="fav-dock-btn glow-hover-btn" onClick={() => toggleFavorite && toggleFavorite(currentSong)}>
-          {isFav && isFav(currentSong.id) ? '❤️' : '🤍'}
+        <button className="fav-dock-btn glow-hover-btn" onClick={() => toggleFavorite(currentSong)}>
+          {isFav(currentSong.id) ? '❤️' : '🤍'}
         </button>
       </div>
 
@@ -126,7 +126,7 @@ export const PlayerDock = ({
             min="0"
             max={duration || 0}
             step="1"
-            value={currentTime || 0}
+            value={currentTime}
             onChange={handleSeek}
           />
           <span className="time-text">{formatTime(duration)}</span>
