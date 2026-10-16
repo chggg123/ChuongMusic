@@ -2076,7 +2076,7 @@ button {
 @media screen and (min-width: 769px) {
   .player-dock {
     padding: 16px 24px !important;
-    bottom: 12px !important;
+    bottom: 18px !important;
   }
 
   .album-art-wrapper img {
