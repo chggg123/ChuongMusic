@@ -1729,14 +1729,14 @@ button {
 }
 /* 1. Tăng độ dày và tổng thể khung Player Dock */
 .player-dock {
-  padding: 28px 28px !important;
+  padding: 34px 34px !important;
   bottom: 10px !important;
 }
 
 /* 2. Tăng kích thước ảnh bìa bài hát */
 .album-art-wrapper img {
-  width: 56px !important;
-  height: 56px !important;
+  width: 40px !important;
+  height: 40px !important;
 }
 
 /* 3. Tăng cỡ chữ tên bài hát và ca sĩ */
@@ -1787,7 +1787,7 @@ button {
   position: absolute !important;
   bottom: calc(100% + 12px) !important;
   right: 0 !important;
-  width: 220px !important;
+  width: 180px !important;
   padding: 10px 12px !important;
   border-radius: 16px !important;
   display: flex !important;
@@ -1841,9 +1841,9 @@ button {
   position: absolute !important;
   bottom: calc(100% + 10px) !important;
   right: 0 !important;
-  width: 160px !important;             /* Thu hẹp chiều rộng khung */
-  padding: 8px !important;             /* Bớt khoảng đệm viền */
-  border-radius: 12px !important;      /* Bo góc nhỏ gọn */
+  width: 140px !important;             /* Thu hẹp chiều rộng khung */
+  padding: 6px !important;             /* Bớt khoảng đệm viền */
+  border-radius: 18px !important;      /* Bo góc nhỏ gọn */
   display: flex !important;
   flex-direction: column !important;
   gap: 6px !important;
