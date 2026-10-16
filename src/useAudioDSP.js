@@ -17,8 +17,9 @@ export function useAudioDSP(isPlaying) {
   const pannerNodeRef = useRef(null);
   const animFrameRef = useRef(null);
   const angleRef = useRef(0);
+  const connectedElementRef = useRef(null);
 
-  // KÍCH HOẠT VÀ NỐI LUỒNG BỘ LỌC WEB AUDIO API
+  // KÍCH HOẠT VÀ NỐI LUỒNG BỘ LỌC WEB AUDIO API (AN TOÀN BẢO VỆ CHỐNG CRASH)
   const initAudioContext = (mediaElement) => {
     if (!mediaElement) return;
 
@@ -31,12 +32,18 @@ export function useAudioDSP(isPlaying) {
 
       const ctx = audioCtxRef.current;
       if (ctx.state === 'suspended') {
-        ctx.resume();
+        ctx.resume().catch(() => {});
       }
 
-      if (!sourceNodeRef.current) {
-        // Gắn trực tiếp thẻ HTML5 Audio vào Web Audio API
-        sourceNodeRef.current = ctx.createMediaElementSource(mediaElement);
+      // Kiểm tra xem thẻ HTML5 Audio này đã được kết nối chưa để tránh lỗi InvalidStateError
+      if (!sourceNodeRef.current && connectedElementRef.current !== mediaElement) {
+        try {
+          sourceNodeRef.current = ctx.createMediaElementSource(mediaElement);
+          connectedElementRef.current = mediaElement;
+        } catch (sourceErr) {
+          console.warn("MediaElementSource đã được tạo trước đó:", sourceErr);
+          return;
+        }
 
         // 1. Lọc Bass Boost (Low-shelf Filter)
         bassFilterRef.current = ctx.createBiquadFilter();
@@ -74,36 +81,42 @@ export function useAudioDSP(isPlaying) {
         currentNode.connect(ctx.destination);
       }
     } catch (err) {
-      console.log('DSP AudioContext initialized:', err);
+      console.warn('DSP AudioContext init warning:', err);
     }
   };
 
   // Mở khóa AudioContext bị Chrome / Edge khóa Autoplay
   const resumeAudioContext = () => {
     if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
-      audioCtxRef.current.resume();
+      audioCtxRef.current.resume().catch(() => {});
     }
   };
 
   // Cập nhật cường độ Bass
   useEffect(() => {
     if (bassFilterRef.current && audioCtxRef.current) {
-      bassFilterRef.current.gain.setTargetAtTime(bassGain, audioCtxRef.current.currentTime, 0.02);
+      try {
+        bassFilterRef.current.gain.setTargetAtTime(bassGain, audioCtxRef.current.currentTime, 0.02);
+      } catch (e) {}
     }
   }, [bassGain]);
 
   // Cập nhật cường độ Vocal
   useEffect(() => {
     if (vocalFilterRef.current && audioCtxRef.current) {
-      vocalFilterRef.current.gain.setTargetAtTime(vocalGain, audioCtxRef.current.currentTime, 0.02);
+      try {
+        vocalFilterRef.current.gain.setTargetAtTime(vocalGain, audioCtxRef.current.currentTime, 0.02);
+      } catch (e) {}
     }
   }, [vocalGain]);
 
   // Cập nhật Stereo Pan
   useEffect(() => {
     if (!is8DEnabled && pannerNodeRef.current && audioCtxRef.current) {
-      pannerNodeRef.current.pan.setTargetAtTime(stereoPan, audioCtxRef.current.currentTime, 0.02);
-      setCurrentPanPos(stereoPan);
+      try {
+        pannerNodeRef.current.pan.setTargetAtTime(stereoPan, audioCtxRef.current.currentTime, 0.02);
+        setCurrentPanPos(stereoPan);
+      } catch (e) {}
     }
   }, [stereoPan, is8DEnabled]);
 
@@ -120,7 +133,9 @@ export function useAudioDSP(isPlaying) {
         const panVal = Math.sin(angleRef.current);
 
         if (pannerNodeRef.current && audioCtxRef.current) {
-          pannerNodeRef.current.pan.setValueAtTime(panVal, audioCtxRef.current.currentTime);
+          try {
+            pannerNodeRef.current.pan.setValueAtTime(panVal, audioCtxRef.current.currentTime);
+          } catch (e) {}
         }
         setCurrentPanPos(panVal);
         animFrameRef.current = requestAnimationFrame(animate8D);
@@ -132,7 +147,9 @@ export function useAudioDSP(isPlaying) {
       if (!is8DEnabled) {
         setCurrentPanPos(stereoPan);
         if (pannerNodeRef.current && audioCtxRef.current) {
-          pannerNodeRef.current.pan.setValueAtTime(stereoPan, audioCtxRef.current.currentTime);
+          try {
+            pannerNodeRef.current.pan.setValueAtTime(stereoPan, audioCtxRef.current.currentTime);
+          } catch (e) {}
         }
       }
     }
