@@ -2156,3 +2156,57 @@ button {
   border-radius: 8px !important;
   font-weight: 700 !important;
 }
+/* =========================================================
+   FIX ẢNH THUMBNAIL / ĐĨA NHẠC TIKTOK TRÊN PLAYER DOCK
+   ========================================================= */
+
+/* Khung tạo kiểu đĩa than Vinyl làm nền dự phòng cho TikTok */
+.album-art-wrapper {
+  position: relative !important;
+  width: 48px !important;
+  height: 48px !important;
+  flex-shrink: 0 !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle, #2a2a2a 0%, #111111 70%, #000000 100%) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.2) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+/* Tâm lỗ đĩa nhạc Vinyl */
+.album-art-wrapper::before {
+  content: '' !important;
+  position: absolute !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #00f2fe !important;
+  z-index: 1 !important;
+  border: 2px solid #000000 !important;
+  pointer-events: none !important;
+}
+
+/* Ảnh bìa TikTok / YouTube nằm trên đĩa */
+.album-art-wrapper img {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  position: relative !important;
+  z-index: 2 !important;
+  background-color: #1a1a1a !important;
+}
+
+/* Hiệu ứng xoay tròn đĩa nhạc khi phát nhạc TikTok */
+.album-art-wrapper.spinning,
+.album-art-wrapper img.spinning {
+  animation: spinGpu 12s linear infinite !important;
+}
+
+@keyframes spinGpu {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
