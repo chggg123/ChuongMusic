@@ -2132,3 +2132,27 @@ button {
   font-weight: 700 !important;
   white-space: nowrap !important;
 }
+/* KÉO THANH SPEED XÊ XUỐNG DƯỚI SÁT NÚT BẤM */
+.speed-dropdown-options.speed-liquid-glass {
+  position: absolute !important;
+  bottom: calc(100% + 6px) !important;  /* Giảm khoảng cách để xê xuống sát nút ⚡ 1x */
+  right: 0 !important;
+  width: max-content !important;
+  padding: 5px 8px !important;
+  border-radius: 14px !important;
+  z-index: 2500 !important;
+}
+
+.speed-quick-presets.horizontal {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.speed-quick-presets.horizontal .speed-preset-btn {
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+}
