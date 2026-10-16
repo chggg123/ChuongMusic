@@ -31,7 +31,6 @@ export const PlayerDock = ({
   const canvasRef = useRef(null);
   const speedMenuRef = useRef(null);
 
-  // Lắng nghe sự kiện click bên ngoài để đóng menu Speed
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (speedMenuRef.current && !speedMenuRef.current.contains(event.target)) {
@@ -50,6 +49,7 @@ export const PlayerDock = ({
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     const bars = window.innerWidth < 768 ? 12 : 22;
 
     let animId;
@@ -82,28 +82,33 @@ export const PlayerDock = ({
     return () => cancelAnimationFrame(animId);
   }, [isPlaying, theme, ledEnabled]);
 
-  if (!currentSong) return null;
+  if (!currentSong || !currentSong.id) return null;
 
   return (
     <footer className={`player-dock ${ledEnabled ? `rgb-chase-box mode-${ledMode}` : 'no-led-border'}`}>
       <div className="player-left">
         <div className="album-art-wrapper">
           <img
+            key={currentSong.id}
             src={getHighResThumbnail(currentSong)}
-            alt={currentSong.title}
+            alt={currentSong.title || 'Bài hát'}
             className={isPlaying ? 'spinning' : ''}
+            referrerPolicy="no-referrer"
+            onLoad={(e) => {
+              e.target.style.display = 'block';
+            }}
             onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = currentSong.thumbnail || `https://img.youtube.com/vi/${currentSong.id}/mqdefault.jpg`;
+              // Khi TikTok chặn ảnh, ẩn thẻ img đi để đĩa than Vinyl tự thiết kế lộ ra chuẩn 100%
+              e.target.style.display = 'none';
             }}
           />
         </div>
         <div className="song-meta">
-          <h4>{currentSong.title}</h4>
-          <p>{currentSong.artist}</p>
+          <h4>{currentSong.title || 'Chưa rõ tiêu đề'}</h4>
+          <p>{currentSong.artist || 'Nghệ sĩ'}</p>
         </div>
-        <button className="fav-dock-btn glow-hover-btn" onClick={() => toggleFavorite(currentSong)}>
-          {isFav(currentSong.id) ? '❤️' : '🤍'}
+        <button className="fav-dock-btn glow-hover-btn" onClick={() => toggleFavorite && toggleFavorite(currentSong)}>
+          {isFav && isFav(currentSong.id) ? '❤️' : '🤍'}
         </button>
       </div>
 
@@ -126,7 +131,7 @@ export const PlayerDock = ({
             min="0"
             max={duration || 0}
             step="1"
-            value={currentTime}
+            value={currentTime || 0}
             onChange={handleSeek}
           />
           <span className="time-text">{formatTime(duration)}</span>
