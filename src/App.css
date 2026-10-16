@@ -2156,3 +2156,15 @@ button {
   border-radius: 8px !important;
   font-weight: 700 !important;
 }
+/* =========================================================
+   CẤU HÌNH ẢNH NỀN MẶC ĐỊNH BẰNG CSS
+   ========================================================= */
+
+body, .app-container {
+  /* Thay đường dẫn ảnh mặc định của bạn vào url() bên dưới */
+  background-image: url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
