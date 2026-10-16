@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 
 export function useAudioDSP(isPlaying) {
   const [is8DEnabled, setIs8DEnabled] = useState(false);
-  const [eightDSpeed, setEightDSpeed] = useState(0.25); // Tốc độ xoay vòm 8D
-  const [bassGain, setBassGain] = useState(0); // Tăng Bass 0 -> 20 dB
-  const [vocalGain, setVocalGain] = useState(0); // Lọc giọng -12 -> +12 dB
-  const [stereoPan, setStereoPan] = useState(0); // -1 (Trái) -> +1 (Phải)
+  const [eightDSpeed, setEightDSpeed] = useState(0.25);
+  const [bassGain, setBassGain] = useState(0);
+  const [vocalGain, setVocalGain] = useState(0);
+  const [stereoPan, setStereoPan] = useState(0);
   const [is3DSpacial, setIs3DSpacial] = useState(false);
   const [spatialReverb, setSpatialReverb] = useState(30);
   const [currentPanPos, setCurrentPanPos] = useState(0);
@@ -17,9 +17,7 @@ export function useAudioDSP(isPlaying) {
   const pannerNodeRef = useRef(null);
   const animFrameRef = useRef(null);
   const angleRef = useRef(0);
-  const connectedElementRef = useRef(null);
 
-  // KÍCH HOẠT VÀ NỐI LUỒNG BỘ LỌC WEB AUDIO API (AN TOÀN BẢO VỆ CHỐNG CRASH)
   const initAudioContext = (mediaElement) => {
     if (!mediaElement) return;
 
@@ -35,38 +33,30 @@ export function useAudioDSP(isPlaying) {
         ctx.resume().catch(() => {});
       }
 
-      // Kiểm tra xem thẻ HTML5 Audio này đã được kết nối chưa để tránh lỗi InvalidStateError
-      if (!sourceNodeRef.current && connectedElementRef.current !== mediaElement) {
+      if (!sourceNodeRef.current) {
         try {
           sourceNodeRef.current = ctx.createMediaElementSource(mediaElement);
-          connectedElementRef.current = mediaElement;
-        } catch (sourceErr) {
-          console.warn("MediaElementSource đã được tạo trước đó:", sourceErr);
+        } catch (e) {
           return;
         }
 
-        // 1. Lọc Bass Boost (Low-shelf Filter)
         bassFilterRef.current = ctx.createBiquadFilter();
         bassFilterRef.current.type = 'lowshelf';
         bassFilterRef.current.frequency.value = 110;
         bassFilterRef.current.gain.value = bassGain;
 
-        // 2. Lọc Giọng Ca Sĩ (Peaking Filter)
         vocalFilterRef.current = ctx.createBiquadFilter();
         vocalFilterRef.current.type = 'peaking';
         vocalFilterRef.current.frequency.value = 2400;
         vocalFilterRef.current.Q.value = 1.2;
         vocalFilterRef.current.gain.value = vocalGain;
 
-        // 3. Stereo Panner (Âm thanh vòm Trái / Phải 8D)
         if (ctx.createStereoPanner) {
           pannerNodeRef.current = ctx.createStereoPanner();
           pannerNodeRef.current.pan.value = stereoPan;
         }
 
-        // Nối chuỗi: Source ➔ BassFilter ➔ VocalFilter ➔ StereoPanner ➔ Loa/Tai nghe
         let currentNode = sourceNodeRef.current;
-
         currentNode.connect(bassFilterRef.current);
         currentNode = bassFilterRef.current;
 
@@ -81,18 +71,16 @@ export function useAudioDSP(isPlaying) {
         currentNode.connect(ctx.destination);
       }
     } catch (err) {
-      console.warn('DSP AudioContext init warning:', err);
+      console.warn("DSP Init warning:", err);
     }
   };
 
-  // Mở khóa AudioContext bị Chrome / Edge khóa Autoplay
   const resumeAudioContext = () => {
     if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
       audioCtxRef.current.resume().catch(() => {});
     }
   };
 
-  // Cập nhật cường độ Bass
   useEffect(() => {
     if (bassFilterRef.current && audioCtxRef.current) {
       try {
@@ -101,7 +89,6 @@ export function useAudioDSP(isPlaying) {
     }
   }, [bassGain]);
 
-  // Cập nhật cường độ Vocal
   useEffect(() => {
     if (vocalFilterRef.current && audioCtxRef.current) {
       try {
@@ -110,7 +97,6 @@ export function useAudioDSP(isPlaying) {
     }
   }, [vocalGain]);
 
-  // Cập nhật Stereo Pan
   useEffect(() => {
     if (!is8DEnabled && pannerNodeRef.current && audioCtxRef.current) {
       try {
@@ -120,7 +106,6 @@ export function useAudioDSP(isPlaying) {
     }
   }, [stereoPan, is8DEnabled]);
 
-  // Vòng lặp xoay luồng âm thanh 8D 360° theo thời gian thực
   useEffect(() => {
     if (is8DEnabled && isPlaying) {
       resumeAudioContext();
