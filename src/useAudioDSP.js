@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 
 export function useAudioDSP(isPlaying) {
   const [is8DEnabled, setIs8DEnabled] = useState(false);
-  const [eightDSpeed, setEightDSpeed] = useState(0.25);
-  const [bassGain, setBassGain] = useState(0);
-  const [vocalGain, setVocalGain] = useState(0);
-  const [stereoPan, setStereoPan] = useState(0);
+  const [eightDSpeed, setEightDSpeed] = useState(0.25); // Tốc độ xoay vòm 8D
+  const [bassGain, setBassGain] = useState(0); // Tăng Bass 0 -> 20 dB
+  const [vocalGain, setVocalGain] = useState(0); // Lọc giọng -12 -> +12 dB
+  const [stereoPan, setStereoPan] = useState(0); // -1 (Trái) -> +1 (Phải)
   const [is3DSpacial, setIs3DSpacial] = useState(false);
   const [spatialReverb, setSpatialReverb] = useState(30);
   const [currentPanPos, setCurrentPanPos] = useState(0);
@@ -18,6 +18,7 @@ export function useAudioDSP(isPlaying) {
   const animFrameRef = useRef(null);
   const angleRef = useRef(0);
 
+  // KÍCH HOẠT VÀ NỐI LUỒNG BỘ LỌC WEB AUDIO API
   const initAudioContext = (mediaElement) => {
     if (!mediaElement) return;
 
@@ -30,33 +31,35 @@ export function useAudioDSP(isPlaying) {
 
       const ctx = audioCtxRef.current;
       if (ctx.state === 'suspended') {
-        ctx.resume().catch(() => {});
+        ctx.resume();
       }
 
       if (!sourceNodeRef.current) {
-        try {
-          sourceNodeRef.current = ctx.createMediaElementSource(mediaElement);
-        } catch (e) {
-          return;
-        }
+        // Gắn trực tiếp thẻ HTML5 Audio vào Web Audio API
+        sourceNodeRef.current = ctx.createMediaElementSource(mediaElement);
 
+        // 1. Lọc Bass Boost (Low-shelf Filter)
         bassFilterRef.current = ctx.createBiquadFilter();
         bassFilterRef.current.type = 'lowshelf';
         bassFilterRef.current.frequency.value = 110;
         bassFilterRef.current.gain.value = bassGain;
 
+        // 2. Lọc Giọng Ca Sĩ (Peaking Filter)
         vocalFilterRef.current = ctx.createBiquadFilter();
         vocalFilterRef.current.type = 'peaking';
         vocalFilterRef.current.frequency.value = 2400;
         vocalFilterRef.current.Q.value = 1.2;
         vocalFilterRef.current.gain.value = vocalGain;
 
+        // 3. Stereo Panner (Âm thanh vòm Trái / Phải 8D)
         if (ctx.createStereoPanner) {
           pannerNodeRef.current = ctx.createStereoPanner();
           pannerNodeRef.current.pan.value = stereoPan;
         }
 
+        // Nối chuỗi: Source ➔ BassFilter ➔ VocalFilter ➔ StereoPanner ➔ Loa/Tai nghe
         let currentNode = sourceNodeRef.current;
+
         currentNode.connect(bassFilterRef.current);
         currentNode = bassFilterRef.current;
 
@@ -71,41 +74,40 @@ export function useAudioDSP(isPlaying) {
         currentNode.connect(ctx.destination);
       }
     } catch (err) {
-      console.warn("DSP Init warning:", err);
+      console.log('DSP AudioContext initialized:', err);
     }
   };
 
+  // Mở khóa AudioContext bị Chrome / Edge khóa Autoplay
   const resumeAudioContext = () => {
     if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
-      audioCtxRef.current.resume().catch(() => {});
+      audioCtxRef.current.resume();
     }
   };
 
+  // Cập nhật cường độ Bass
   useEffect(() => {
     if (bassFilterRef.current && audioCtxRef.current) {
-      try {
-        bassFilterRef.current.gain.setTargetAtTime(bassGain, audioCtxRef.current.currentTime, 0.02);
-      } catch (e) {}
+      bassFilterRef.current.gain.setTargetAtTime(bassGain, audioCtxRef.current.currentTime, 0.02);
     }
   }, [bassGain]);
 
+  // Cập nhật cường độ Vocal
   useEffect(() => {
     if (vocalFilterRef.current && audioCtxRef.current) {
-      try {
-        vocalFilterRef.current.gain.setTargetAtTime(vocalGain, audioCtxRef.current.currentTime, 0.02);
-      } catch (e) {}
+      vocalFilterRef.current.gain.setTargetAtTime(vocalGain, audioCtxRef.current.currentTime, 0.02);
     }
   }, [vocalGain]);
 
+  // Cập nhật Stereo Pan
   useEffect(() => {
     if (!is8DEnabled && pannerNodeRef.current && audioCtxRef.current) {
-      try {
-        pannerNodeRef.current.pan.setTargetAtTime(stereoPan, audioCtxRef.current.currentTime, 0.02);
-        setCurrentPanPos(stereoPan);
-      } catch (e) {}
+      pannerNodeRef.current.pan.setTargetAtTime(stereoPan, audioCtxRef.current.currentTime, 0.02);
+      setCurrentPanPos(stereoPan);
     }
   }, [stereoPan, is8DEnabled]);
 
+  // Vòng lặp xoay luồng âm thanh 8D 360° theo thời gian thực
   useEffect(() => {
     if (is8DEnabled && isPlaying) {
       resumeAudioContext();
@@ -118,9 +120,7 @@ export function useAudioDSP(isPlaying) {
         const panVal = Math.sin(angleRef.current);
 
         if (pannerNodeRef.current && audioCtxRef.current) {
-          try {
-            pannerNodeRef.current.pan.setValueAtTime(panVal, audioCtxRef.current.currentTime);
-          } catch (e) {}
+          pannerNodeRef.current.pan.setValueAtTime(panVal, audioCtxRef.current.currentTime);
         }
         setCurrentPanPos(panVal);
         animFrameRef.current = requestAnimationFrame(animate8D);
@@ -132,9 +132,7 @@ export function useAudioDSP(isPlaying) {
       if (!is8DEnabled) {
         setCurrentPanPos(stereoPan);
         if (pannerNodeRef.current && audioCtxRef.current) {
-          try {
-            pannerNodeRef.current.pan.setValueAtTime(stereoPan, audioCtxRef.current.currentTime);
-          } catch (e) {}
+          pannerNodeRef.current.pan.setValueAtTime(stereoPan, audioCtxRef.current.currentTime);
         }
       }
     }
