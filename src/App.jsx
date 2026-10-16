@@ -11,24 +11,33 @@ import { CustomMediaManager, PlaylistManager, QueueManager } from './Managers';
 import { AudioManager } from './AudioManager';
 import { useAudioDSP } from './useAudioDSP';
 
-// HÀM ĐỌC LOCALSTORAGE AN TOÀN TUYỆT ĐỐI CHỐNG SẬP APP
+// ĐỌC VÀ LÀM SẠCH BỘ NHỚ CHỐNG LỖI MẢNG NULL/UNDEFINED
+const getSafeArray = (key, fallback = []) => {
+  try {
+    const item = localStorage.getItem(key);
+    if (!item) return fallback;
+    const parsed = JSON.parse(item);
+    if (!Array.isArray(parsed)) return fallback;
+    return parsed.filter((x) => x && typeof x === 'object' && x.id);
+  } catch (e) {
+    return fallback;
+  }
+};
+
 const getSafeStorage = (key, fallback) => {
   try {
     const item = localStorage.getItem(key);
     if (!item) return fallback;
     return JSON.parse(item);
   } catch (e) {
-    console.warn(`Lỗi đọc localStorage key "${key}":`, e);
     return fallback;
   }
 };
 
-// KIỂM TRA ĐƯỜNG DẪN TIKTOK
 const isTikTokUrl = (url) => {
   return /(tiktok\.com|vt\.tiktok\.com|vm\.tiktok\.com)/i.test(url);
 };
 
-// QUẢN LÝ BỘ NHỚ INDEXEDDB LƯU FILE DUNG LƯỢNG LỚN
 const DB_NAME = 'ChuongMusicDB';
 const STORE_NAME = 'custom_media';
 
@@ -138,7 +147,6 @@ function App() {
     localStorage.setItem('liquid_bgplay', JSON.stringify(backgroundPlay));
   }, [backgroundPlay]);
 
-  // XỬ LÝ PHÁT NỀN KHI CHUYỂN TAB TRÌNH DUYỆT
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && !backgroundPlay && isPlaying) {
@@ -159,28 +167,14 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
 
-  const [searchHistory, setSearchHistory] = useState(() => {
-    return getSafeStorage('liquid_search_history', []);
-  });
-
-  const [favorites, setFavorites] = useState(() => {
-    return getSafeStorage('liquid_favs', []);
-  });
-
-  const [playlists, setPlaylists] = useState(() => {
-    return getSafeStorage('liquid_playlists', [{ id: 'p1', name: 'Nhạc Chill Đêm Khuya', songs: [] }]);
-  });
-
+  const [searchHistory, setSearchHistory] = useState(() => getSafeStorage('liquid_search_history', []));
+  const [favorites, setFavorites] = useState(() => getSafeArray('liquid_favs', []));
+  const [playlists, setPlaylists] = useState(() => getSafeStorage('liquid_playlists', [{ id: 'p1', name: 'Nhạc Chill Đêm Khuya', songs: [] }]));
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
 
-  const [autoPlay, setAutoPlay] = useState(() => {
-    return getSafeStorage('liquid_autoplay', true);
-  });
-
-  const [playHistory, setPlayHistory] = useState(() => {
-    return getSafeStorage('liquid_history', []);
-  });
+  const [autoPlay, setAutoPlay] = useState(() => getSafeStorage('liquid_autoplay', true));
+  const [playHistory, setPlayHistory] = useState(() => getSafeArray('liquid_history', []));
 
   const [showRecommendPopup, setShowRecommendPopup] = useState(false);
   const [nextSongToPlay, setNextSongToPlay] = useState(null);
@@ -191,9 +185,7 @@ function App() {
 
   const [customMediaList, setCustomMediaList] = useState([]);
 
-  const [activeBackground, setActiveBackground] = useState(() => {
-    return getSafeStorage('liquid_active_bg', null);
-  });
+  const [activeBackground, setActiveBackground] = useState(() => getSafeStorage('liquid_active_bg', null));
 
   const fileInputRef = useRef(null);
   const playerRef = useRef(null);
@@ -202,6 +194,18 @@ function App() {
   const timerRef = useRef(null);
 
   const currentSong = currentIndex >= 0 && currentIndex < songs.length ? songs[currentIndex] : null;
+
+  // HÀM HỦY YOUTUBE PLAYER AN TOÀN KHI CHUYỂN BÀI
+  const destroyYTPlayer = () => {
+    if (playerRef.current) {
+      try {
+        if (typeof playerRef.current.destroy === 'function') {
+          playerRef.current.destroy();
+        }
+      } catch (e) {}
+      playerRef.current = null;
+    }
+  };
 
   useEffect(() => {
     localStorage.removeItem('liquid_custom_media');
@@ -239,7 +243,7 @@ function App() {
     if (!term || !term.trim()) return;
     const cleanTerm = term.trim();
     setSearchHistory((prev) => {
-      const updated = [cleanTerm, ...prev.filter((item) => item.toLowerCase() !== cleanTerm.toLowerCase())].slice(0, 10);
+      const updated = [cleanTerm, ...prev.filter((item) => typeof item === 'string' && item.toLowerCase() !== cleanTerm.toLowerCase())].slice(0, 10);
       localStorage.setItem('liquid_search_history', JSON.stringify(updated));
       return updated;
     });
@@ -281,7 +285,6 @@ function App() {
     }
   };
 
-  // PHÁT BÀI HÁT TỪ LINK YOUTUBE HOẶC TIKTOK TRỰC TIẾP
   const handlePlayFromLink = async (url) => {
     if (!url || !url.trim()) return;
     const cleanUrl = url.trim();
@@ -311,6 +314,7 @@ function App() {
               duration: formatTime(data.duration || 0)
             };
 
+            destroyYTPlayer();
             setSongs((prev) => [newSong, ...prev.filter((s) => s && s.id !== songId)]);
             setCurrentIndex(0);
             setIsPlaying(true);
@@ -353,6 +357,7 @@ function App() {
           duration: '--:--'
         };
 
+        destroyYTPlayer();
         setSongs((prev) => [newSong, ...prev.filter((s) => s && s.id !== ytId)]);
         setCurrentIndex(0);
         setIsPlaying(true);
@@ -435,7 +440,7 @@ function App() {
     if (e) e.stopPropagation();
     const updated = playlists.map((pl) => {
       if (pl.id === playlistId) {
-        return { ...pl, songs: pl.songs.filter((s) => s.id !== songId) };
+        return { ...pl, songs: (pl.songs || []).filter((s) => s && s.id !== songId) };
       }
       return pl;
     });
@@ -448,7 +453,9 @@ function App() {
     if (!song || !song.id) return;
     setFavorites((prev) => {
       const exists = prev.some((f) => f && f.id === song.id);
-      return exists ? prev.filter((f) => f && f.id !== song.id) : [...prev, song];
+      const updated = exists ? prev.filter((f) => f && f.id !== song.id) : [...prev, song];
+      localStorage.setItem('liquid_favs', JSON.stringify(updated));
+      return updated;
     });
   };
 
@@ -456,9 +463,10 @@ function App() {
 
   const getSmartRecommendation = () => {
     if (!songs || songs.length === 0) return null;
-    if (songs.length === 1) return songs[0];
-    const candidateSongs = songs.filter((s, idx) => s && idx !== currentIndex);
-    return candidateSongs[0] || songs[(currentIndex + 1) % songs.length];
+    const validSongs = songs.filter(Boolean);
+    if (validSongs.length <= 1) return validSongs[0] || null;
+    const candidateSongs = validSongs.filter((s, idx) => idx !== currentIndex);
+    return candidateSongs[0] || validSongs[(currentIndex + 1) % validSongs.length];
   };
 
   useEffect(() => {
@@ -466,7 +474,8 @@ function App() {
       setDismissedRecommend(false);
       setShowRecommendPopup(false);
       setPlayHistory((prev) => {
-        const updated = [currentSong, ...prev.filter((s) => s && s.id !== currentSong.id)].slice(0, 40);
+        const validPrev = Array.isArray(prev) ? prev.filter(Boolean) : [];
+        const updated = [currentSong, ...validPrev.filter((s) => s.id !== currentSong.id)].slice(0, 40);
         localStorage.setItem('liquid_history', JSON.stringify(updated));
         return updated;
       });
@@ -520,18 +529,16 @@ function App() {
     };
   }, [query]);
 
-  // ĐỔI BÀI HÁT VÀ PHÁT MEDIA
+  // ĐỔI BÀI HÁT VÀ PHÁT MEDIA AN TOÀN
   useEffect(() => {
     if (!currentSong || !currentSong.id) return;
     setVideoError(false);
 
     if (currentSong.type === 'tiktok') {
+      destroyYTPlayer();
       if (nativeAudioRef.current) {
         nativeAudioRef.current.pause();
         nativeAudioRef.current.src = '';
-      }
-      if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
-        try { playerRef.current.pauseVideo(); } catch (e) { }
       }
       setShowVideo(true);
       setIsPlaying(true);
@@ -567,6 +574,9 @@ function App() {
           if (typeof playerRef.current.playVideo === 'function') playerRef.current.playVideo();
           setIsPlaying(true);
         } else if (window.YT && window.YT.Player) {
+          const ytContainer = document.getElementById('yt-player-instance');
+          if (!ytContainer) return;
+
           playerRef.current = new window.YT.Player('yt-player-instance', {
             height: '100%',
             width: '100%',
@@ -585,7 +595,9 @@ function App() {
                 try {
                   if (event.data === window.YT.PlayerState.PLAYING) {
                     setIsPlaying(true);
-                    setDuration(playerRef.current.getDuration() || 0);
+                    if (playerRef.current && typeof playerRef.current.getDuration === 'function') {
+                      setDuration(playerRef.current.getDuration() || 0);
+                    }
                   } else if (event.data === window.YT.PlayerState.PAUSED) {
                     setIsPlaying(false);
                   } else if (event.data === window.YT.PlayerState.ENDED) {
@@ -680,7 +692,7 @@ function App() {
     setActiveTab('home');
 
     const updateSongListAndActiveIndex = (newList) => {
-      const validList = Array.isArray(newList) ? newList.filter(Boolean) : [];
+      const validList = Array.isArray(newList) ? newList.filter((s) => s && s.id) : [];
       setSongs(validList);
       if (currentSong) {
         const foundIndex = validList.findIndex((s) => s && s.id === currentSong.id);
@@ -832,7 +844,7 @@ function App() {
     }
   };
 
-  const displayedSongs = activeTab === 'favorites' ? favorites : songs;
+  const displayedSongs = (activeTab === 'favorites' ? favorites : songs).filter((s) => s && s.id);
 
   return (
     <div
@@ -1006,7 +1018,7 @@ function App() {
             </div>
 
             <div className="songs-grid">
-              {displayedSongs.filter(Boolean).map((song, index) => (
+              {displayedSongs.map((song, index) => (
                 <SongCard
                   key={song.id || index}
                   song={song}
