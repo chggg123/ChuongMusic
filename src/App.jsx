@@ -982,7 +982,7 @@ function App() {
 
         <footer className={`site-footer glass-card always-rgb-footer mode-${ledMode}`}>
           <p>© All rights reserved by <strong>Chuong Music</strong> ❤️❤️❤️</p>
-          <p>Trang web này được viết nhằm giải trí nghe nhac. Không hoạt động bất kỳ nội dung nào liên quan đến kinh doanh và quảng cáo</p>
+          <p>🎶Trang web này được viết nhằm giải trí nghe nhạc, <b><i>không hoạt động bất kỳ nội dung nào liên quan đến kinh doanh và quảng cáo.</i></b> </p>
           <p className="sub-msg">✨ Chúc các bạn nghe nhạc vui vẻ và thư giãn cùng Chương Music! ✨</p>
           <div className="footer-contact-badge">
             Mọi thắc mắc vui lòng liên hê:📱 Contact / Zalo: <strong>0812234259</strong>
