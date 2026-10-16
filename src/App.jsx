@@ -261,85 +261,95 @@ function App() {
     }
   };
 
-  // PHÁT BÀI HÁT TỪ LINK YOUTUBE HOẶC TIKTOK TRỰC TIẾP
+  // PHÁT BÀI HÁT TỪ LINK YOUTUBE HOẶC TIKTOK TRỰC TIẾP (AN TOÀN AN TOÀN TUYỆT ĐỐI)
   const handlePlayFromLink = async (url) => {
     if (!url || !url.trim()) return;
     const cleanUrl = url.trim();
 
-    // 1. DÙNG TIKWM API ĐỂ LẤY FILE VIDEO TIKTOK TRỰC TIẾP
-    if (isTikTokUrl(cleanUrl)) {
-      setLoading(true);
-      setLoadingText('⏳ Đang tải video TikTok...');
+    try {
+      // 1. DÙNG TIKWM API ĐỂ LẤY FILE VIDEO TIKTOK TRỰC TIẾP
+      if (isTikTokUrl(cleanUrl)) {
+        setLoading(true);
+        setLoadingText('⏳ Đang tải video TikTok...');
 
-      try {
-        const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(cleanUrl)}`);
-        const json = await res.json();
+        try {
+          const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(cleanUrl)}`);
+          if (!res.ok) throw new Error("Lỗi mạng khi tải TikTok");
+          const json = await res.json();
 
-        if (json.code === 0 && json.data) {
-          const data = json.data;
-          const songId = `tiktok_${data.id}`;
-          const newSong = {
-            id: songId,
-            type: 'tiktok',
-            tiktokVideoId: data.id,
-            videoUrl: data.play, // Link video MP4 phát trực tiếp
-            musicUrl: data.music,
-            title: data.title || 'Video TikTok',
-            artist: data.author?.nickname ? `@${data.author.nickname}` : 'TikTok Creator',
-            thumbnail: data.cover || 'https://sf16-sg.tiktokcdn.com/obj/eden-sg/u3kwyb_l_zlp/ljhwZfsne22q_wq_u3kwyb/tiktok_icon.png',
-            duration: formatTime(data.duration || 0)
-          };
+          if (json.code === 0 && json.data) {
+            const data = json.data;
+            const songId = `tiktok_${data.id || Date.now()}`;
+            const newSong = {
+              id: songId,
+              type: 'tiktok',
+              tiktokVideoId: data.id,
+              videoUrl: data.play || '', // Link video MP4 phát trực tiếp
+              musicUrl: data.music || '',
+              title: data.title || 'Video TikTok',
+              artist: data.author?.nickname ? `@${data.author.nickname}` : 'TikTok Creator',
+              thumbnail: data.cover || 'https://sf16-sg.tiktokcdn.com/obj/eden-sg/u3kwyb_l_zlp/ljhwZfsne22q_wq_u3kwyb/tiktok_icon.png',
+              duration: formatTime(data.duration || 0)
+            };
 
-          setSongs((prev) => [newSong, ...prev.filter((s) => s.id !== songId)]);
-          setCurrentIndex(0);
-          setIsPlaying(true);
-          setShowVideo(true);
-          setActiveTab('home');
-        } else {
-          alert('Không thể lấy video từ link TikTok này. Bạn hãy kiểm tra lại link nhé!');
+            setSongs((prev) => [newSong, ...prev.filter((s) => s.id !== songId)]);
+            setCurrentIndex(0);
+            setIsPlaying(true);
+            setShowVideo(true);
+            setActiveTab('home');
+          } else {
+            alert('Không thể lấy video từ link TikTok này. Bạn hãy kiểm tra lại link nhé!');
+          }
+        } catch (err) {
+          console.error('Lỗi TikWM API:', err);
+          alert('Lỗi kết nối khi tải video TikTok! Vui lòng thử lại sau.');
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        console.error('Lỗi TikWM API:', err);
-        alert('Lỗi kết nối khi tải video TikTok!');
-      } finally {
-        setLoading(false);
+        return;
       }
-      return;
-    }
 
-    // 2. XỬ LÝ LINK YOUTUBE
-    const ytId = extractYouTubeId(cleanUrl);
-    if (ytId) {
-      let songTitle = 'Bài hát từ YouTube Link';
-      let artistName = 'YouTube';
+      // 2. XỬ LÝ LINK YOUTUBE
+      const ytId = extractYouTubeId(cleanUrl);
+      if (ytId) {
+        let songTitle = 'Bài hát từ YouTube Link';
+        let artistName = 'YouTube';
 
-      try {
-        const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${ytId}`);
-        const data = await res.json();
-        if (data && data.title) {
-          songTitle = data.title;
-          artistName = data.author_name || 'YouTube Source';
+        try {
+          const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${ytId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.title) {
+              songTitle = data.title;
+              artistName = data.author_name || 'YouTube Source';
+            }
+          }
+        } catch (err) {
+          console.warn("Lỗi fetch YouTube oEmbed:", err);
         }
-      } catch (err) { }
 
-      const newSong = {
-        id: ytId,
-        type: 'youtube',
-        title: songTitle,
-        artist: artistName,
-        thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
-        duration: '--:--'
-      };
+        const newSong = {
+          id: ytId,
+          type: 'youtube',
+          title: songTitle,
+          artist: artistName,
+          thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
+          duration: '--:--'
+        };
 
-      setSongs((prev) => [newSong, ...prev.filter((s) => s.id !== ytId)]);
-      setCurrentIndex(0);
-      setIsPlaying(true);
-      setShowVideo(true);
-      setActiveTab('home');
-      return;
+        setSongs((prev) => [newSong, ...prev.filter((s) => s.id !== ytId)]);
+        setCurrentIndex(0);
+        setIsPlaying(true);
+        setShowVideo(true);
+        setActiveTab('home');
+        return;
+      }
+
+      alert('Vui lòng dán link YouTube hoặc TikTok hợp lệ!');
+    } catch (globalErr) {
+      console.error("Lỗi xử lý link:", globalErr);
+      alert("Đã xảy ra lỗi khi xử lý link. Vui lòng kiểm tra lại!");
     }
-
-    alert('Vui lòng dán link YouTube hoặc TikTok hợp lệ!');
   };
 
   useEffect(() => {
@@ -451,7 +461,9 @@ function App() {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
       const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      if (firstScriptTag && firstScriptTag.parentNode) {
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      }
     }
   }, []);
 
@@ -491,7 +503,7 @@ function App() {
     };
   }, [query]);
 
-  // ĐỔI BÀI HÁT VÀ PHÁT MEDIA
+  // ĐỔI BÀI HÁT VÀ PHÁT MEDIA (AN TOÀN BẢO VỆ)
   useEffect(() => {
     if (!currentSong || !currentSong.id) return;
     setVideoError(false);
@@ -525,8 +537,10 @@ function App() {
         audioDSP.resumeAudioContext();
       }).catch(() => {
         if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
-          playerRef.current.loadVideoById({ videoId: currentSong.id, startSeconds: 0 });
-          playerRef.current.playVideo();
+          try {
+            playerRef.current.loadVideoById({ videoId: currentSong.id, startSeconds: 0 });
+            playerRef.current.playVideo();
+          } catch (e) {}
         }
       });
     }
@@ -545,20 +559,24 @@ function App() {
             playerVars: { autoplay: 1, controls: 1, modestbranding: 1, rel: 0, origin: window.location.origin },
             events: {
               onReady: (event) => {
-                event.target.setVolume(volume);
-                event.target.setPlaybackRate(playbackRate);
-                event.target.playVideo();
-                setIsPlaying(true);
+                try {
+                  event.target.setVolume(volume);
+                  event.target.setPlaybackRate(playbackRate);
+                  event.target.playVideo();
+                  setIsPlaying(true);
+                } catch (e) {}
               },
               onStateChange: (event) => {
-                if (event.data === window.YT.PlayerState.PLAYING) {
-                  setIsPlaying(true);
-                  setDuration(playerRef.current.getDuration() || 0);
-                } else if (event.data === window.YT.PlayerState.PAUSED) {
-                  setIsPlaying(false);
-                } else if (event.data === window.YT.PlayerState.ENDED) {
-                  handleAutoNext();
-                }
+                try {
+                  if (event.data === window.YT.PlayerState.PLAYING) {
+                    setIsPlaying(true);
+                    setDuration(playerRef.current.getDuration() || 0);
+                  } else if (event.data === window.YT.PlayerState.PAUSED) {
+                    setIsPlaying(false);
+                  } else if (event.data === window.YT.PlayerState.ENDED) {
+                    handleAutoNext();
+                  }
+                } catch (e) {}
               },
               onError: () => setVideoError(true)
             }
@@ -576,31 +594,33 @@ function App() {
   useEffect(() => {
     if (isPlaying) {
       timerRef.current = setInterval(() => {
-        if (currentSong?.type === 'tiktok' && tiktokVideoRef.current) {
-          const cur = tiktokVideoRef.current.currentTime || 0;
-          const dur = tiktokVideoRef.current.duration || 0;
-          setCurrentTime(cur);
-          setDuration(dur);
-        } else if (nativeAudioRef.current && nativeAudioRef.current.duration) {
-          const cur = nativeAudioRef.current.currentTime || 0;
-          const dur = nativeAudioRef.current.duration || 0;
-          setCurrentTime(cur);
-          setDuration(dur);
-          const remaining = dur - cur;
+        try {
+          if (currentSong?.type === 'tiktok' && tiktokVideoRef.current) {
+            const cur = tiktokVideoRef.current.currentTime || 0;
+            const dur = tiktokVideoRef.current.duration || 0;
+            setCurrentTime(cur);
+            setDuration(dur);
+          } else if (nativeAudioRef.current && nativeAudioRef.current.duration) {
+            const cur = nativeAudioRef.current.currentTime || 0;
+            const dur = nativeAudioRef.current.duration || 0;
+            setCurrentTime(cur);
+            setDuration(dur);
+            const remaining = dur - cur;
 
-          if (remaining <= 30 && remaining > 0 && !showRecommendPopup && !dismissedRecommend && songs.length > 0) {
-            const recommended = getSmartRecommendation();
-            if (recommended) {
-              setNextSongToPlay(recommended);
-              setShowRecommendPopup(true);
+            if (remaining <= 30 && remaining > 0 && !showRecommendPopup && !dismissedRecommend && songs.length > 0) {
+              const recommended = getSmartRecommendation();
+              if (recommended) {
+                setNextSongToPlay(recommended);
+                setShowRecommendPopup(true);
+              }
             }
+          } else if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
+            const cur = playerRef.current.getCurrentTime() || 0;
+            const dur = playerRef.current.getDuration() || 0;
+            setCurrentTime(cur);
+            setDuration(dur);
           }
-        } else if (playerRef.current && playerRef.current.getCurrentTime) {
-          const cur = playerRef.current.getCurrentTime() || 0;
-          const dur = playerRef.current.getDuration() || 0;
-          setCurrentTime(cur);
-          setDuration(dur);
-        }
+        } catch (err) {}
       }, 500);
     } else {
       clearInterval(timerRef.current);
@@ -705,7 +725,7 @@ function App() {
         tiktokVideoRef.current.pause();
         setIsPlaying(false);
       } else {
-        tiktokVideoRef.current.play();
+        tiktokVideoRef.current.play().catch(() => {});
         setIsPlaying(true);
       }
       return;
@@ -760,7 +780,9 @@ function App() {
       tiktokVideoRef.current.currentTime = time;
     } else {
       if (nativeAudioRef.current) nativeAudioRef.current.currentTime = time;
-      if (playerRef.current && playerRef.current.seekTo) playerRef.current.seekTo(time, true);
+      if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
+        try { playerRef.current.seekTo(time, true); } catch (err) {}
+      }
     }
   };
 
@@ -771,7 +793,9 @@ function App() {
       tiktokVideoRef.current.volume = val / 100;
     }
     if (nativeAudioRef.current) nativeAudioRef.current.volume = val / 100;
-    if (playerRef.current && playerRef.current.setVolume) playerRef.current.setVolume(val);
+    if (playerRef.current && typeof playerRef.current.setVolume === 'function') {
+      try { playerRef.current.setVolume(val); } catch (err) {}
+    }
   };
 
   const changeSpeed = (rate) => {
@@ -803,6 +827,9 @@ function App() {
         ref={nativeAudioRef}
         crossOrigin="anonymous"
         onEnded={handleAutoNext}
+        onError={() => {
+          if (autoPlay) handleAutoNext();
+        }}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         style={{ display: 'none' }}
@@ -871,6 +898,9 @@ function App() {
                 autoPlay
                 playsInline
                 onEnded={handleAutoNext}
+                onError={() => {
+                  if (autoPlay) handleAutoNext();
+                }}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '14px' }}
