@@ -2,18 +2,18 @@ export const API_BASE = 'https://chuongmusic-sever.onrender.com/api';
 export const SPEED_RATES = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
 export const HOT_TIKTOK_KEYWORDS = [
-  'nhạc hot tiktok 2026',
-  'nhạc chill tiktok',
-  'nhạc tiktok trend',
-  'nhạc remix tiktok hot',
-  'vpop hot tiktok',
-  'nhạc lofi tiktok chill',
-  'nhạc edm tiktok gây nghiện',
-  'nhạc tâm trạng tiktok',
-  'nhạc tiktok buồn',
-  'nhạc lofi cực chill',
-  'nhạc tiktok remix',
-  'nhạc tiktok mới nhất',
+  'nhạc hot tiktok hiện nay',
+  'nhạc chill tâm trạng vui',
+  'nhạc tình yêu vui tươi',
+  'nhạc tình yêu vui vẻ',
+  'nhạc chill quán cafe',
+  'nhạc lofi chill',
+  'nhạc trung học bài',
+  'nhạc tình yêu trung',
+  'nhạc tâm trạng buồn',
+  'nhạc trung yêu đời',
+  'nhạc trung cute',
+  'nhạc chill mới nhất',
   'nhạc hot trend hiện nay',
   'nhạc tình yêu vui tươi'
 ];
