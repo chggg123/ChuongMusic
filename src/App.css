@@ -2097,3 +2097,38 @@ button {
     font-size: 26px !important;
   }
 }
+/* =========================================================
+   FIX THANH CHỌN TỐC ĐỘ (SPEED): NỔI CAO & THU NHỎ NÚT
+   ========================================================= */
+
+/* 1. Đẩy khung chọn speed lên cao hẳn (+20px) để không đè lên nút ⚡ 1x */
+.speed-dropdown-options.speed-liquid-glass {
+  position: absolute !important;
+  bottom: calc(100% + 20px) !important; /* Đẩy thanh nổi cao hẳn lên trên */
+  right: 0 !important;
+  width: max-content !important;
+  padding: 6px 10px !important;          /* Bớt khoảng đệm viền khung */
+  border-radius: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 2500 !important;
+}
+
+/* 2. Giảm khoảng cách giữa các ô số speed */
+.speed-quick-presets.horizontal {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 4px !important;                   /* Thu hẹp khoảng cách giữa các nút */
+  white-space: nowrap !important;
+}
+
+/* 3. Thu nhỏ cỡ chữ và lề trong của từng nút (0.25x, 0.5x, 1x...) */
+.speed-quick-presets.horizontal .speed-preset-btn {
+  padding: 4px 8px !important;           /* Thu nhỏ kích thước nút số */
+  border-radius: 10px !important;        /* Bo góc nhẹ nhàng */
+  font-size: 11px !important;            /* Cỡ chữ nhỏ gọn chuẩn giao diện */
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}
