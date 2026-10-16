@@ -2210,3 +2210,31 @@ button {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+/* =========================================================
+   FIX KHUNG VIDEO TIKTOK VÀ ĐĨA THAN TRONG SUỐT
+   ========================================================= */
+
+/* 1. Ép màu nền đen cho khung phát video TikTok để không bị màu xám/trắng của Light mode đè lên */
+.video-glass-box {
+  background: #000000 !important;
+}
+
+.video-glass-box video {
+  background: #000000 !important;
+  z-index: 10 !important;
+  position: relative !important;
+}
+
+/* 2. Ẩn hoàn toàn icon khung xám bị lỗi ảnh của trình duyệt trên thẻ img */
+.album-art-wrapper img[style*="display: none"] {
+  display: none !important;
+}
+
+.album-art-wrapper img {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
