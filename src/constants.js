@@ -16,7 +16,7 @@ export const HOT_TIKTOK_KEYWORDS = [
   'nhạc chill mới nhất',
   'nhạc hot trend hiện nay',
   'nhạc track',
-  'nhạc mashup hot nhất hiện nay'
+  'nhạc mashup hot nhất hiện nay',
   'nhạc tình yêu vui tươi'
 ];
 
