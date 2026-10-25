@@ -4,8 +4,9 @@ export const API_BASE = (
   configuredApiBase ||
   (import.meta.env.DEV
     ? 'http://localhost:5000/api'
-    : 'https://chuongmusic-sever.onrender.com/api')
+    : 'https://chuongmusic-server.onrender.com/api')
 ).replace(/\/+$/, '');
+
 export const SPEED_RATES = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
 export const HOT_TIKTOK_KEYWORDS = [
