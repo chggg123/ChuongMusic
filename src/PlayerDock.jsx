@@ -1,0 +1,228 @@
+import React, { useEffect, useRef } from 'react';
+import { getHighResThumbnail, formatTime } from './constants';
+
+export const PlayerDock = ({
+  currentSong,
+  isPlaying,
+  ledEnabled,
+  ledMode = 'midnight',
+  toggleFavorite,
+  isFav,
+  theme,
+  handlePrev,
+  togglePlayPause,
+  handleNext,
+  currentTime,
+  duration,
+  handleSeek,
+  backgroundPlay,
+  toggleBackgroundPlay,
+  autoPlay,
+  setAutoPlay,
+  showVideo,
+  toggleVideo,
+  canToggleVideo,
+  canAdjustVolume,
+  canChangeSpeed,
+  playbackRate,
+  showSpeedMenu,
+  setShowSpeedMenu,
+  changeSpeed,
+  volume,
+  handleVolumeChange,
+  lowPerformanceMode = false
+}) => {
+  const canvasRef = useRef(null);
+  const speedMenuRef = useRef(null);
+
+  // Lắng nghe sự kiện click bên ngoài để đóng menu Speed
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (speedMenuRef.current && !speedMenuRef.current.contains(event.target)) {
+        setShowSpeedMenu(false);
+      }
+    };
+    if (showSpeedMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSpeedMenu, setShowSpeedMenu]);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const bars = window.innerWidth < 768 ? 12 : 22;
+
+    let animId = null;
+    let lastTime = 0;
+    const fpsInterval = lowPerformanceMode ? 1000 / 60 : 0;
+    const barWidth = canvas.width / bars;
+    const rgbGradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    rgbGradient.addColorStop(0, '#ff007f');
+    rgbGradient.addColorStop(0.33, '#00f2fe');
+    rgbGradient.addColorStop(0.66, '#38ef7d');
+    rgbGradient.addColorStop(1, '#ffb100');
+
+    const render = (timestamp) => {
+      const elapsed = timestamp - lastTime;
+      if (fpsInterval === 0 || elapsed >= fpsInterval) {
+        lastTime = fpsInterval === 0 ? timestamp : timestamp - (elapsed % fpsInterval);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i < bars; i += 1) {
+          const height = isPlaying ? Math.random() * (canvas.height - 4) + 4 : 3;
+          ctx.fillStyle = ledEnabled ? rgbGradient : (theme === 'dark' ? '#00f2fe' : '#ff0844');
+          ctx.fillRect(i * barWidth, canvas.height - height, barWidth - 2, height);
+        }
+      }
+
+      if (isPlaying && !document.hidden) animId = requestAnimationFrame(render);
+    };
+
+    const stopAnimation = () => {
+      if (animId !== null) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      }
+    };
+    const syncAnimation = () => {
+      stopAnimation();
+      if (document.hidden) return;
+      if (isPlaying) animId = requestAnimationFrame(render);
+      else render(fpsInterval);
+    };
+
+    syncAnimation();
+    document.addEventListener('visibilitychange', syncAnimation);
+    return () => {
+      document.removeEventListener('visibilitychange', syncAnimation);
+      stopAnimation();
+    };
+  }, [isPlaying, theme, ledEnabled, lowPerformanceMode]);
+
+  if (!currentSong) return null;
+
+  return (
+    <footer className={`player-dock ${ledEnabled ? `rgb-chase-box mode-${ledMode}` : 'no-led-border'}`}>
+      <div className="player-left">
+        <div className="album-art-wrapper">
+          <img
+            src={getHighResThumbnail(currentSong)}
+            alt={currentSong.title}
+            className={isPlaying ? 'spinning' : ''}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = currentSong.thumbnail || `https://img.youtube.com/vi/${currentSong.id}/mqdefault.jpg`;
+            }}
+          />
+        </div>
+        <div className="song-meta">
+          <h4>{currentSong.title}</h4>
+          <p>{currentSong.artist}</p>
+        </div>
+        <button className="fav-dock-btn glow-hover-btn" onClick={() => toggleFavorite(currentSong)}>
+          {isFav(currentSong.id) ? '❤️' : '🤍'}
+        </button>
+      </div>
+
+      <div className="player-center">
+        <canvas ref={canvasRef} width={200} height={22} className="visualizer-canvas" />
+
+        <div className="controls-group">
+          <button className="ctrl-btn glow-hover-btn" onClick={handlePrev}>⏮</button>
+          <button className="ctrl-btn play-btn glow-hover-btn" onClick={togglePlayPause}>
+            {isPlaying ? '⏸' : '▶'}
+          </button>
+          <button className="ctrl-btn glow-hover-btn" onClick={handleNext}>⏭</button>
+        </div>
+
+        <div className="progress-container">
+          <span className="time-text">
+            {currentSong.type === 'tiktok' && duration <= 0 ? '--:--' : formatTime(currentTime)}
+          </span>
+          <input
+            type="range"
+            className="progress-bar"
+            min="0"
+            max={duration || 0}
+            step="1"
+            value={currentTime}
+            onChange={handleSeek}
+          />
+          <span className="time-text">{duration > 0 ? formatTime(duration) : '--:--'}</span>
+        </div>
+      </div>
+
+      <div className="player-right">
+        <button
+          className={`bgplay-toggle-btn glow-hover-btn ${backgroundPlay ? 'active' : ''}`}
+          onClick={toggleBackgroundPlay}
+          aria-pressed={backgroundPlay}
+          title="Cho phép nhạc tiếp tục phát khi ẩn tab hoặc khóa màn hình nếu trình duyệt và nguồn nhạc hỗ trợ"
+        >
+          {backgroundPlay ? '🎧 Phát nền: BẬT' : '🔇 Phát nền: TẮT'}
+        </button>
+
+        <button
+          className={`autoplay-toggle-btn glow-hover-btn ${autoPlay ? 'active' : ''}`}
+          onClick={() => setAutoPlay(!autoPlay)}
+        >
+          {autoPlay ? '🔄 Auto: BẬT' : '⏸️ Auto: TẮT'}
+        </button>
+
+        {canToggleVideo && (
+          <button
+            className={`video-toggle-btn glow-hover-btn ${showVideo ? 'active' : ''}`}
+            onClick={toggleVideo}
+            aria-pressed={showVideo}
+          >
+            {showVideo ? '🎵 Tắt Video' : '📹 Bật Video'}
+          </button>
+        )}
+
+        {canChangeSpeed && (
+          <div className="speed-menu-container" ref={speedMenuRef}>
+            <button className="speed-toggle-btn glow-hover-btn" onClick={() => setShowSpeedMenu(!showSpeedMenu)}>
+              ⚡ {playbackRate === 1 ? '1x' : `${playbackRate}x`}
+            </button>
+
+            {showSpeedMenu && (
+              <div className="speed-dropdown-options speed-liquid-glass">
+                <div className="speed-quick-presets horizontal">
+                  {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
+                    <button
+                      key={rate}
+                      className={`speed-preset-btn ${playbackRate === rate ? 'active' : ''}`}
+                      onClick={() => {
+                        changeSpeed(rate);
+                        setShowSpeedMenu(false);
+                      }}
+                    >
+                      {rate === 1 ? '1x' : `${rate}x`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {canAdjustVolume && (
+          <input
+            type="range"
+            className="volume-bar"
+            min="0"
+            max="100"
+            value={volume}
+            onChange={handleVolumeChange}
+          />
+        )}
+      </div>
+    </footer>
+  );
+};
